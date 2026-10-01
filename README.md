@@ -2,8 +2,7 @@
 
 Ribo-seq analysis in Python. Milestone 1 (this version) does one job: P-site
 offsets and CDS quantification from transcriptome alignments, as a drop-in
-replacement for the RiboStan steps in wf-eIF-deltaTE. See PLAN.md for the
-review of the design record, the scope, and what comes later.
+replacement for the RiboStan steps in wf-eIF-deltaTE. 
 
 ## Install
 
