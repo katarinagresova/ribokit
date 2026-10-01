@@ -1,0 +1,14 @@
+# Pinned to the versions the tests and the eIF4E 4h validation ran with.
+# Create: mamba env create -p .env -f environment.yml && .env/bin/pip install --no-deps -e .
+name: ribokit
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.14.7
+  - numpy=2.4.6
+  - scipy=1.17.1
+  - pandas=3.0.6
+  - pysam=0.24.1
+  - pytest=9.1.1
+  - pip=26.2.1

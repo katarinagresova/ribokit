@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=77"]  # SPDX `license` string (PEP 639)
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ribokit"
+dynamic = ["version"]
+license = "Apache-2.0"
+requires-python = ">=3.14"
+dependencies = ["numpy", "scipy", "pandas", "pysam"]
+
+[project.scripts]
+ribokit = "ribokit.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "ribokit.__version__"}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
