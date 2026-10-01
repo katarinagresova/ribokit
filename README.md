@@ -57,5 +57,4 @@ Inputs:
 
 ## License
 
-Apache License 2.0, see [LICENSE](LICENSE). ribokit is a reimplementation, not
-a port: it contains no RiboStan code (RiboStan is GPL-3).
+Apache License 2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE).
