@@ -18,6 +18,7 @@ __pycache__/
 build/
 dist/
 wheels/
+site/
 
 # Virtual environments
 venv/
@@ -39,3 +40,6 @@ htmlcov/
 # agents
 CLAUDE.md
 PLAN.md
+
+# local
+validation/

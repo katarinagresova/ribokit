@@ -1,8 +1,8 @@
 # ribokit
 
 Ribo-seq analysis in Python. Milestone 1 (this version) does one job: P-site
-offsets and CDS quantification from transcriptome alignments, as a drop-in
-replacement for the RiboStan steps in wf-eIF-deltaTE. 
+offset estimation and CDS quantification from transcriptome alignments,
+deterministic from end to end.
 
 ## Install
 
@@ -31,7 +31,7 @@ Inputs:
 
 | Output | Content |
 |---|---|
-| `<prefix>.quant.tsv` | `Name Length EffectiveLength ritpm NumReads`, one row per CDS, sorted by Name. `Length` = CDS without the stop codon. `NumReads` = expected reads; they sum to the assigned reads. `ritpm` = reads per nt, scaled to sum to 1e6. `NA` where no read is compatible. Same columns as RiboStan's `*_morf_quant.tsv`. |
+| `<prefix>.quant.tsv` | `Name Length EffectiveLength ritpm NumReads`, one row per CDS, sorted by Name. `Length` = CDS without the stop codon. `NumReads` = expected reads; they sum to the assigned reads. `ritpm` = reads per nt, scaled to sum to 1e6. `NA` where no read is compatible. |
 | `<prefix>.offsets.tsv` | per (length, phase): `offset` (nt from the 5' end to the P-site codon), `support` (reads spanning a start or stop), `margin` (score lead of the chosen window over the next, per read of support; near 0 = weakly determined), `reads` |
 | `<prefix>.ties.tsv` | CDSs that no read tells apart (e.g. identical paralogs); their split comes from the EM's even start, not from the data |
 | `<prefix>.stats.tsv` | reads left after each filter, EM iterations and log-likelihood |
