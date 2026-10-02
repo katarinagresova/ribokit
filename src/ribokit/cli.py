@@ -25,7 +25,7 @@ def main(argv=None):
     q.add_argument("--fasta", required=True, help="genome FASTA of the GTF")
     q.add_argument("--read-lengths", required=True, type=read_lengths, metavar="LO-HI")
     q.add_argument("--out-prefix", required=True,
-                   help="writes <prefix>.quant.tsv, .offsets.tsv, .ties.tsv, .stats.tsv")
+                   help="writes <prefix>.quant.tsv, .offsets.tsv, .ties.tsv, .stats.tsv, .psites.tsv")
     q.add_argument("--offsets", help="use this offsets.tsv instead of estimating offsets from the BAM")
     q.add_argument("--min-offset-support", type=float, default=30,
                    help="reads spanning a start or stop codon needed to give a read length offsets")

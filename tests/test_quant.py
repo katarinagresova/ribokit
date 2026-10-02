@@ -78,6 +78,15 @@ def test_ties_listed(run):
     assert sorted(ties["Name"]) == ["C1", "C2"]
 
 
+def test_psites_in_cds(run, data):
+    anno = annotation.load_annotation(str(data["gtf"]), str(data["fasta"]))
+    idx = anno.index()
+    psites = pd.read_csv(f"{run['prefix']}.psites.tsv", sep="\t")
+    assert psites["read"].nunique() == run["stats"]["reads_assigned"]
+    t = psites["Name"].map(idx)
+    assert ((psites["psite"] >= anno.cds_start[t]) & (psites["psite"] <= anno.cds_end[t] - 3)).all()
+
+
 def test_filters_counted(run, data):
     s = run["stats"]
     assert s["reads_forward"] == len(data["reads"])                   # one count per name, whatever its _x<n>
@@ -101,6 +110,6 @@ def test_deterministic_and_offsets_reusable(run, data, tmp_path):
     reused = tmp_path / "reused"
     quant.quantify(str(data["bam"]), str(data["gtf"]), str(data["fasta"]), WINDOW, str(reused),
                    offsets_path=f"{run['prefix']}.offsets.tsv")
-    for suffix in ("quant.tsv", "offsets.tsv", "ties.tsv", "stats.tsv"):
+    for suffix in ("quant.tsv", "offsets.tsv", "ties.tsv", "stats.tsv", "psites.tsv"):
         assert filecmp.cmp(f"{run['prefix']}.{suffix}", f"{again}.{suffix}", shallow=False), suffix
     assert filecmp.cmp(f"{run['prefix']}.quant.tsv", f"{reused}.quant.tsv", shallow=False)

@@ -35,6 +35,7 @@ Inputs:
 | `<prefix>.offsets.tsv` | per (length, phase): `offset` (nt from the 5' end to the P-site codon), `support` (reads spanning a start or stop), `z` (how firmly the data pin this phase's offset: score lead of the chosen window over the best window that gives this phase another offset, divided by the square root of the reads the two disagree on; below about 4 = weakly determined), `reads` |
 | `<prefix>.ties.tsv` | CDSs that no read tells apart (e.g. identical paralogs); their split comes from the EM's even start, not from the data |
 | `<prefix>.stats.tsv` | reads left after each filter, EM steps and log-likelihood |
+| `<prefix>.psites.tsv` | `read Name psite length`, one row per alignment assigned to a CDS: `psite` is the 0-based transcript position of the P-site's first nt |
 
 ## Method, in short
 

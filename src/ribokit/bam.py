@@ -26,9 +26,11 @@ class Alignments:
     pos5: np.ndarray     # 0-based transcript position of the 5' end
     length: np.ndarray
     n_reads: int
+    read_names: list     # read name per read index, in order of first appearance
 
     def subset(self, mask):
-        return Alignments(self.read[mask], self.tx[mask], self.pos5[mask], self.length[mask], self.n_reads)
+        return Alignments(self.read[mask], self.tx[mask], self.pos5[mask], self.length[mask],
+                           self.n_reads, self.read_names)
 
     def count_reads(self):
         return int(np.unique(self.read).size)
@@ -82,7 +84,7 @@ def read_bam(path, anno, stats):
     stats["reads_forward"] = len(names)
     stats["alignments_dropped_cigar"] = n_bad_cigar_aln
     aln = Alignments(np.array(read, dtype=np.int64), np.array(tx, dtype=np.int64),
-                     np.array(pos5, dtype=np.int64), np.array(length, dtype=np.int64), len(names))
+                     np.array(pos5, dtype=np.int64), np.array(length, dtype=np.int64), len(names), list(names))
     stats["reads_cigar_ok"] = aln.count_reads()
     log.info("%s: %d forward reads, %d with an acceptable alignment (%d alignments dropped for their CIGAR)",
              path, len(names), stats["reads_cigar_ok"], n_bad_cigar_aln)

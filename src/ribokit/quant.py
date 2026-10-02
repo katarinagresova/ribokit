@@ -23,13 +23,16 @@ log = logging.getLogger(__name__)
 
 
 def assign(aln, anno, table, lengths):
-    """(has_offset, psite_in_cds) per alignment."""
+    """(has_offset, psite_in_cds, psite) per alignment. psite is the 0-based transcript
+    position of the P-site's first nt, valid (whatever has_offset/psite_in_cds say) once
+    has_offset."""
     t = aln.tx
     phase = (aln.pos5 - anno.cds_start[t]) % 3
     off = table[(aln.length - lengths[0]) * 3 + phase]
     psite = aln.pos5 + off
     has_off = off >= 0
-    return has_off, has_off & (psite >= anno.cds_start[t]) & (psite <= anno.cds_end[t] - 3)
+    in_cds = has_off & (psite >= anno.cds_start[t]) & (psite <= anno.cds_end[t] - 3)
+    return has_off, in_cds, psite
 
 
 def equivalence_classes(read, tx, n_orf):
@@ -130,8 +133,9 @@ def quantify(bam_path, gtf, fasta, lengths, out_prefix, offsets_path=None, min_s
     else:
         offsets_df = offsets.read_offsets(offsets_path)
     table = offsets.lookup(offsets_df, lengths)
-    has_off, in_cds = assign(aln, anno, table, lengths)
+    has_off, in_cds, psite = assign(aln, anno, table, lengths)
     stats["reads_with_offset"] = aln.subset(has_off).count_reads()
+    psite = psite[in_cds]
     aln = aln.subset(in_cds)
     stats["reads_assigned"] = aln.count_reads()
 
@@ -161,6 +165,12 @@ def quantify(bam_path, gtf, fasta, lengths, out_prefix, offsets_path=None, min_s
     offsets_df.to_csv(f"{out_prefix}.offsets.tsv", sep="\t", index=False, na_rep="NA")
     pd.DataFrame([(anno.tx[t], anno.tx[g[0]]) for g in ties for t in g],
                  columns=["Name", "tie_group"]).to_csv(f"{out_prefix}.ties.tsv", sep="\t", index=False)
+    pd.DataFrame({
+        "read": np.array(aln.read_names, dtype=object)[aln.read],
+        "Name": np.array(anno.tx, dtype=object)[aln.tx],
+        "psite": psite,
+        "length": aln.length,
+    }).to_csv(f"{out_prefix}.psites.tsv", sep="\t", index=False)
     pd.DataFrame(list(stats.items()), columns=["stat", "value"]).to_csv(
         f"{out_prefix}.stats.tsv", sep="\t", index=False)
     return quant, offsets_df, stats
