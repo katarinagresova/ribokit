@@ -73,8 +73,26 @@
     const supScores = CENTRES.map((c) => countIn(startReads, c) + countIn(stopReads, c));
     const order = CENTRES.map((_, i) => i).sort((i, j) => scores[j] - scores[i] || CENTRES[i] - CENTRES[j]);
     const best = order[0];
-    const margin = (scores[order[0]] - scores[order[1]]) / support;
-    root.rk = { reads, centres: CENTRES, scores, best: CENTRES[best], margin, offsets: windowOffsets(CENTRES[best]) };
+    const bestDs = windowOffsets(CENTRES[best]);
+    // Reads counted by the best window only (n1) and by window c only (n2).
+    const versus = (c) => {
+      const ds = windowOffsets(c);
+      let n1 = 0, n2 = 0;
+      for (const r of reads) {
+        const a = inCds(r, bestDs[r.phase]), b = inCds(r, ds[r.phase]);
+        if (a && !b) n1++;
+        if (b && !a) n2++;
+      }
+      return [n1, n2];
+    };
+    // Per phase: z against the best window that gives this phase another offset.
+    const z = [0, 1, 2].map((ph) => {
+      const rival = order.slice(1).find((i) => windowOffsets(CENTRES[i])[ph] !== bestDs[ph]);
+      if (rival === undefined) return NaN;
+      const [n1, n2] = versus(CENTRES[rival]);
+      return n1 + n2 > 0 ? (n1 - n2) / Math.sqrt(n1 + n2) : 0;
+    });
+    root.rk = { reads, centres: CENTRES, scores, best: CENTRES[best], z, offsets: bestDs };
 
     root.innerHTML = "";
     const controls = document.createElement("div");
@@ -155,13 +173,21 @@
       }
       const i = CENTRES.indexOf(c);
       bars.forEach((b, j) => b.setAttribute("fill", j === i ? C.cur : C.bar));
-      const isBest = i === best;
+      let verdict;
+      if (i === best) {
+        verdict = `<b>This is the best window</b> (★). Evidence per phase: ` +
+          z.map((v, ph) => `phase ${ph} <i>z</i> = ${v.toFixed(1)}`).join(", ") + ".";
+      } else {
+        const [n1, n2] = versus(c);
+        const changed = [0, 1, 2].filter((ph) => ds[ph] !== bestDs[ph])
+          .map((ph) => `phase ${ph} (${bestDs[ph]} → ${ds[ph]})`).join(", ").replace(/, ([^,]*)$/, " and $1");
+        verdict = `Against the best window, c = ${CENTRES[best]} (★), this one changes ${changed}. ` +
+          `The two disagree on ${n1 + n2} reads: ${n1} favour the best window, ${n2} this one.`;
+      }
       readout.innerHTML =
         `<b>c = ${c}</b> → offsets: phase 0 → <b>${ds[0]}</b>, phase 1 → <b>${ds[1]}</b>, phase 2 → <b>${ds[2]}</b> nt. ` +
         `<span style="color:${C.in}">${supScores[i]}</span> of ${support} reads that span the start or last codon get their ` +
-        `P-site inside the CDS (<span style="color:${C.out}">${support - supScores[i]}</span> outside). ` +
-        (isBest ? `<b>This is the best window</b> (★); margin ${margin.toFixed(2)}.`
-                : `The best window is c = ${CENTRES[best]} (★).`);
+        `P-site inside the CDS (<span style="color:${C.out}">${support - supScores[i]}</span> outside). ` + verdict;
     }
     slider.addEventListener("input", () => set(+slider.value));
     controls.addEventListener("click", (e) => {

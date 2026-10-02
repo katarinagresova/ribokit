@@ -12,6 +12,12 @@ of three consecutive offsets with the highest summed score (the design record's
 "window over offset - phase"). RiboStan's window runs over (offset, phase) rows
 instead and cannot express e.g. (12, 11, 13); choosing each phase on its own
 was unstable on real data (eIF4E 4h: 17 of 39 classes changed between libraries).
+
+Adjacent windows differ in one phase's offset, so how well the data pin a phase
+is measured per phase: the best window against the best window that gives this
+phase another offset ("rival"). z = score lead / sqrt(reads counted by exactly
+one of the two), a McNemar statistic. On eIF4E 4h, every class whose offset
+changed between the even and the odd transcripts of a library had z < 4.
 """
 import logging
 
@@ -28,6 +34,27 @@ MIN_FLANK = 3
 def read_weights(aln):
     """1 / number of alignments of the read, so a multimapper counts once in total."""
     return 1.0 / np.bincount(aln.read, minlength=aln.n_reads)[aln.read]
+
+
+def counted(ds, phase, a, b):
+    """Reads whose P-site, at the window's offset for their phase, is in the CDS."""
+    d = np.asarray(ds)[phase]
+    return (a <= d) & (d <= b)
+
+
+def phase_z(windows, phase, a, b, w):
+    """z of the best window over each phase's rival; NaN if no window changes that phase."""
+    best = windows[0]
+    best_in = counted(best[2], phase, a, b)
+    z = []
+    for ph in range(3):
+        rival = next((win for win in windows[1:] if win[2][ph] != best[2][ph]), None)
+        if rival is None:
+            z.append(np.nan)
+            continue
+        disagree = w[best_in != counted(rival[2], phase, a, b)].sum()
+        z.append((best[0] - rival[0]) / np.sqrt(disagree) if disagree > 0 else 0.0)
+    return z
 
 
 def estimate_offsets(aln, anno, lengths, min_support):
@@ -60,10 +87,11 @@ def estimate_offsets(aln, anno, lengths, min_support):
         windows.sort(key=lambda win: (-win[0], win[1]))
         sup = support[k0:k0 + 3].sum()
         ok = sup >= min_support and len(windows) > 0
-        margin = (windows[0][0] - windows[1][0]) / sup if ok and len(windows) > 1 else np.nan
+        s = aln.length == length
+        z = phase_z(windows, phase[s], a[s], b[s], w[s]) if ok else [np.nan] * 3
         for ph in range(3):
-            rows.append((length, ph, windows[0][2][ph] if ok else np.nan, support[k0 + ph], margin, total[k0 + ph]))
-    df = pd.DataFrame(rows, columns=["length", "phase", "offset", "support", "margin", "reads"])
+            rows.append((length, ph, windows[0][2][ph] if ok else np.nan, support[k0 + ph], z[ph], total[k0 + ph]))
+    df = pd.DataFrame(rows, columns=["length", "phase", "offset", "support", "z", "reads"])
     df["offset"] = df["offset"].astype("Int64")
     log.info("offsets for %d of %d (length, phase) classes", df["offset"].notna().sum(), len(df))
     return df

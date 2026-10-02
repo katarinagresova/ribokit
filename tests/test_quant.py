@@ -40,6 +40,7 @@ def test_annotation_matches_truth(data, which):
 def test_offsets_recovered(run):
     got = {(r.length, r.phase): r.offset for r in run["offsets"].itertuples()}
     assert got == TRUE_OFFSETS
+    assert (run["offsets"]["z"] > 3).all()
 
 
 def test_em_length_term():

@@ -144,7 +144,9 @@ Try it on simulated footprints of length 29 (true offsets 12, 11, 13):
 *Each row is a footprint, coloured by where the current window puts its P-site
 (darker block): <span style="color:#2a9d8f">inside the CDS</span> or
 <span style="color:#e76f51">outside</span>. Below: how many of the spanning
-footprints each window puts inside. Click a bar or drag the slider.*
+footprints each window puts inside. Click a bar or drag the slider. For any
+window other than the best, the readout counts the reads the two disagree on:
+the numbers [z](#what-offsetstsv-reports) is built from.*
 
 Choosing each phase on its own lets the three offsets of a length drift apart
 and was unstable between libraries; the window shares the evidence across the
@@ -153,12 +155,44 @@ three phases.
 ### What `offsets.tsv` reports
 
 One row per (length, phase): `offset`, `support` (weighted reads spanning the
-start or last codon), `margin` and `reads`. The margin is the score lead of the
-best window over the second best, per read of support; near 0 means the data
-barely prefer this window. The runner-up window often shares two of the three
-offsets, so margins are small numbers even when the offsets are right: in the
-[worked example](#worked-example) every offset is recovered with margins of
-0.02–0.05.
+start or last codon), `z` and `reads`.
+
+`z` says how firmly the data pin this phase's offset. Windows next to each other
+differ in one phase only: moving the centre from $c$ to $c + 1$ swaps offset
+$c - 1$ for $c + 2$, and both belong to the same phase. So the evidence is
+measured per phase, against the phase's **rival**: the best window that gives
+this phase a different offset.
+
+```
+29 nt               window              phase 0  phase 1  phase 2
+chosen              c = 12  (11,12,13)     12       11       13
+rival of phase 2    c = 11  (10,11,12)     12       11       10     only phase 2 differs
+rival of phase 1    c = 13  (12,13,14)     12       14       13     only phase 1 differs
+rival of phase 0    c = 14  (13,14,15)     15       14       13     phases 0 and 1 differ
+```
+
+(The rivals of the worked example's 29 nt reads. The phase whose offset is the
+centre $c$ can only change together with another phase.)
+
+Most reads are counted by both windows and say nothing about the choice. The
+reads that one window counts and the other does not are mostly ribosomes on the
+start codon and on the last sense codon. If $n_1$ of them favour the chosen
+window and $n_2$ the rival,
+
+$$
+z = \frac{n_1 - n_2}{\sqrt{n_1 + n_2}}
+$$
+
+a McNemar statistic: how lopsided the split is, given how many reads decide
+it. A split of 7,530 to 44 gives $z = 86$; a split of 122 to 113 gives
+$z = 0.6$, and that offset is a coin flip.
+
+Read $z$ as a scale, not a p-value: footprints are not independent (start and
+stop peaks come in large part from a few highly expressed genes), so $z$ is
+optimistic. On real libraries, every offset that changed between two halves of
+the same library (even- and odd-numbered transcripts) had $z$ below 4. $z$
+measures evidence, not correctness: in the [worked example](#worked-example)
+all offsets are right, and the weakest, $z = 3.5$, rests on 12 reads.
 
 A read length gets offsets only if its three phases together have at least
 `--min-offset-support` (default 30) supporting reads. Reads of a length without
@@ -257,7 +291,7 @@ Each file is written as `<prefix>.<name>`, with the prefix from `--out-prefix`:
 | File | Content |
 |---|---|
 | `quant.tsv` | One row per CDS, sorted by `Name`: `Length` and `EffectiveLength` (CDS length without the stop codon), `NumReads` ($\alpha_t$, expected reads), `ritpm`. `NA` where no read is compatible. |
-| `offsets.tsv` | The offsets, with support and margin ([step 3](#what-offsetstsv-reports)). |
+| `offsets.tsv` | The offsets, with support and $z$ ([step 3](#what-offsetstsv-reports)). |
 | `ties.tsv` | CDSs that no read tells apart. |
 | `stats.tsv` | Reads left after each filter, EM iterations and log-likelihood. |
 
@@ -280,11 +314,11 @@ deletion, and reads of the wrong length.
 
 **Offsets.** All nine planted offsets are recovered:
 
-| length | phase 0 | phase 1 | phase 2 | support | margin |
-|---:|---:|---:|---:|---:|---:|
-| 28 | 12 | 11 | 13 | 673 | 0.018 |
-| 29 | 12 | 11 | 13 | 688 | 0.049 |
-| 30 | 12 | 14 | 13 | 701 | 0.053 |
+| length | phase 0 | phase 1 | phase 2 | support |
+|---:|---:|---:|---:|---:|
+| 28 | 12 (*z* 12.2) | 11 (*z* 3.5) | 13 (*z* 5.9) | 673 |
+| 29 | 12 (*z* 12.1) | 11 (*z* 5.8) | 13 (*z* 6.9) | 688 |
+| 30 | 12 (*z* 9.9) | 14 (*z* 6.1) | 13 (*z* 9.6) | 701 |
 
 **Reads.** What each step of `stats.tsv` removes:
 
