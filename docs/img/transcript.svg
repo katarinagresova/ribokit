@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 364" width="780" height="364" font-family="Roboto, Helvetica Neue, Arial, sans-serif" font-size="13" fill="#263238">
+<rect width="780" height="364" fill="white"/>
+<rect x="40" y="52" width="180" height="10" fill="#9aa5b1" stroke="none" rx="2" />
+<rect x="618" y="52" width="122" height="10" fill="#9aa5b1" stroke="none" rx="2" />
+<rect x="220" y="46" width="380" height="22" fill="#4c78a8" stroke="none" rx="2" />
+<rect x="220" y="46" width="18" height="22" fill="#2f5786" stroke="none" rx="0" />
+<rect x="582" y="46" width="18" height="22" fill="#2f5786" stroke="none" rx="0" />
+<rect x="600" y="46" width="18" height="22" fill="#c0392b" stroke="none" rx="1" />
+<text x="130.0" y="38" text-anchor="middle" font-size="13" fill="#78909c" font-weight="normal">5′ UTR</text>
+<text x="410.0" y="62" text-anchor="middle" font-size="13" fill="white" font-weight="bold">CDS</text>
+<text x="229" y="38" text-anchor="middle" font-size="12" fill="#263238" font-weight="normal">start</text>
+<text x="609" y="38" text-anchor="middle" font-size="12" fill="#c0392b" font-weight="normal">stop</text>
+<text x="679.0" y="38" text-anchor="middle" font-size="13" fill="#78909c" font-weight="normal">3′ UTR</text>
+<line x1="40" y1="70" x2="40" y2="76" stroke="#78909c" stroke-width="1" />
+<text x="40" y="86" text-anchor="middle" font-size="12" fill="#78909c" font-weight="normal">0</text>
+<line x1="220" y1="70" x2="220" y2="76" stroke="#78909c" stroke-width="1" />
+<text x="220" y="86" text-anchor="middle" font-size="12" fill="#78909c" font-weight="normal">cds_start</text>
+<line x1="582" y1="70" x2="582" y2="76" stroke="#78909c" stroke-width="1" />
+<text x="578" y="86" text-anchor="end" font-size="12" fill="#78909c" font-weight="normal">cds_end − 3</text>
+<line x1="600" y1="70" x2="600" y2="91" stroke="#78909c" stroke-width="1" />
+<text x="604" y="101" text-anchor="start" font-size="12" fill="#78909c" font-weight="normal">cds_end</text>
+<line x1="740" y1="70" x2="740" y2="76" stroke="#78909c" stroke-width="1" />
+<text x="740" y="86" text-anchor="end" font-size="12" fill="#78909c" font-weight="normal">transcript length</text>
+<rect x="220" y="122" width="380" height="8" fill="#2a9d8f" stroke="none" rx="2" opacity="0.25"/>
+<text x="410.0" y="146" text-anchor="middle" font-size="12" fill="#2a9d8f" font-weight="bold">a P-site here counts for the CDS: start codon … last sense codon</text>
+<line x1="220" y1="156" x2="220" y2="326" stroke="#b0bec5" stroke-width="1" stroke-dasharray="4,3"/>
+<line x1="600" y1="156" x2="600" y2="326" stroke="#b0bec5" stroke-width="1" stroke-dasharray="4,3"/>
+<rect x="154" y="174" width="90" height="12" fill="#e76f51" stroke="none" rx="3" opacity="0.35"/>
+<rect x="190" y="174" width="18" height="12" fill="#e76f51" stroke="none" rx="1" />
+<text x="252" y="185" text-anchor="start" font-size="12" fill="#e76f51" font-weight="normal">✗ P-site in the 5′ UTR: overlaps the CDS, not counted</text>
+<rect x="184" y="200" width="90" height="12" fill="#2a9d8f" stroke="none" rx="3" opacity="0.35"/>
+<rect x="220" y="200" width="18" height="12" fill="#2a9d8f" stroke="none" rx="1" />
+<text x="282" y="211" text-anchor="start" font-size="12" fill="#2a9d8f" font-weight="normal">✓ P-site on the start codon</text>
+<rect x="364" y="226" width="90" height="12" fill="#2a9d8f" stroke="none" rx="3" opacity="0.35"/>
+<rect x="400" y="226" width="18" height="12" fill="#2a9d8f" stroke="none" rx="1" />
+<text x="462" y="237" text-anchor="start" font-size="12" fill="#2a9d8f" font-weight="normal">✓ P-site inside the CDS</text>
+<rect x="546" y="252" width="90" height="12" fill="#2a9d8f" stroke="none" rx="3" opacity="0.35"/>
+<rect x="582" y="252" width="18" height="12" fill="#2a9d8f" stroke="none" rx="1" />
+<text x="538" y="263" text-anchor="end" font-size="12" fill="#2a9d8f" font-weight="normal">P-site on the last sense codon ✓</text>
+<rect x="564" y="278" width="90" height="12" fill="#e76f51" stroke="none" rx="3" opacity="0.35"/>
+<rect x="600" y="278" width="18" height="12" fill="#e76f51" stroke="none" rx="1" />
+<text x="556" y="289" text-anchor="end" font-size="12" fill="#e76f51" font-weight="normal">P-site on the stop codon: not counted ✗</text>
+<rect x="644" y="304" width="90" height="12" fill="#e76f51" stroke="none" rx="3" opacity="0.35"/>
+<rect x="680" y="304" width="18" height="12" fill="#e76f51" stroke="none" rx="1" />
+<text x="636" y="315" text-anchor="end" font-size="12" fill="#e76f51" font-weight="normal">P-site in the 3′ UTR: not counted ✗</text>
+<rect x="510" y="332" width="1" height="1" fill="white" stroke="none" rx="0" />
+<rect x="40" y="342" width="30" height="10" fill="#78909c" stroke="none" rx="3" opacity="0.35"/>
+<rect x="52" y="342" width="6" height="10" fill="#78909c" stroke="none" rx="0" />
+<text x="78" y="352" text-anchor="start" font-size="12" fill="#78909c" font-weight="normal">footprint, with its P-site codon (from its offset)</text>
+</svg>

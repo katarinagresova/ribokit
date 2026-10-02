@@ -1,0 +1,28 @@
+.rk-widget {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  margin: 1.2rem 0;
+}
+.rk-widget svg { width: 100%; height: auto; display: block; }
+.rk-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.2rem;
+  align-items: center;
+  font-size: 0.7rem;
+  margin-bottom: 0.6rem;
+}
+.rk-controls input[type="range"] { vertical-align: middle; width: 8rem; }
+.rk-controls output { display: inline-block; min-width: 1.6em; font-weight: bold; }
+.rk-controls button {
+  border: 1px solid var(--md-primary-fg-color);
+  color: var(--md-primary-fg-color);
+  background: transparent;
+  border-radius: 4px;
+  padding: 0.1rem 0.6rem;
+  cursor: pointer;
+}
+.rk-controls button:hover { background: var(--md-primary-fg-color); color: var(--md-primary-bg-color); }
+.rk-readout { font-size: 0.7rem; margin: 0.5rem 0 0; }
+.md-typeset figure img { border: 1px solid var(--md-default-fg-color--lightest); border-radius: 4px; }

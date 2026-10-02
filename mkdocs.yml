@@ -1,0 +1,32 @@
+site_name: ribokit
+site_description: Ribo-seq analysis in Python
+site_url: https://katarinagresova.github.io/ribokit/
+repo_url: https://github.com/katarinagresova/ribokit
+docs_dir: docs
+nav:
+  - Home: index.md
+  - Method: method.md
+theme:
+  name: material
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+extra_css:
+  - stylesheets/extra.css
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - javascripts/offset-explorer.js
+  - javascripts/em-explorer.js

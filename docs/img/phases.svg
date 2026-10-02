@@ -1,0 +1,220 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 326" width="800" height="326" font-family="Roboto, Helvetica Neue, Arial, sans-serif" font-size="13" fill="#263238">
+<rect width="800" height="326" fill="white"/>
+<text x="138" y="43" text-anchor="end" font-size="13" fill="#78909c" font-weight="normal">CDS codons</text>
+<rect x="150" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="166" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="182" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="198" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="214" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="230" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="246" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="262" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="278" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="294" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="310" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="326" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="342" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="358" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="374" y="28" width="16" height="20" fill="#f58518" stroke="white" rx="0" />
+<rect x="390" y="28" width="16" height="20" fill="#f58518" stroke="white" rx="0" />
+<rect x="406" y="28" width="16" height="20" fill="#f58518" stroke="white" rx="0" />
+<rect x="422" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="438" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="454" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="470" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="486" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="502" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="518" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="534" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="550" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="566" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="582" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="598" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="614" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="630" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="646" y="28" width="16" height="20" fill="#dce6f2" stroke="white" rx="0" />
+<rect x="662" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<rect x="678" y="28" width="16" height="20" fill="#eef3f9" stroke="white" rx="0" />
+<line x1="182" y1="25" x2="182" y2="51" stroke="#4c78a8" stroke-width="1.5" />
+<line x1="230" y1="25" x2="230" y2="51" stroke="#4c78a8" stroke-width="1.5" />
+<line x1="278" y1="25" x2="278" y2="51" stroke="#4c78a8" stroke-width="1.5" />
+<line x1="326" y1="25" x2="326" y2="51" stroke="#4c78a8" stroke-width="1.5" />
+<line x1="374" y1="25" x2="374" y2="51" stroke="#4c78a8" stroke-width="1.5" />
+<line x1="422" y1="25" x2="422" y2="51" stroke="#4c78a8" stroke-width="1.5" />
+<line x1="470" y1="25" x2="470" y2="51" stroke="#4c78a8" stroke-width="1.5" />
+<line x1="518" y1="25" x2="518" y2="51" stroke="#4c78a8" stroke-width="1.5" />
+<line x1="566" y1="25" x2="566" y2="51" stroke="#4c78a8" stroke-width="1.5" />
+<line x1="614" y1="25" x2="614" y2="51" stroke="#4c78a8" stroke-width="1.5" />
+<line x1="662" y1="25" x2="662" y2="51" stroke="#4c78a8" stroke-width="1.5" />
+<text x="398.0" y="20" text-anchor="middle" font-size="12" fill="#f58518" font-weight="bold">P-site codon</text>
+<rect x="374" y="54" width="48" height="106" fill="#f58518" stroke="none" rx="0" opacity="0.12"/>
+<text x="138" y="81" text-anchor="end" font-size="13" fill="#263238" font-weight="normal">phase 0 · offset 12</text>
+<rect x="182" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="198" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="214" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="230" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="246" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="262" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="278" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="294" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="310" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="326" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="342" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="358" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="374" y="66" width="16" height="20" fill="#f58518" stroke="#b0bec5" rx="0" />
+<rect x="390" y="66" width="16" height="20" fill="#f58518" stroke="#b0bec5" rx="0" />
+<rect x="406" y="66" width="16" height="20" fill="#f58518" stroke="#b0bec5" rx="0" />
+<rect x="422" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="438" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="454" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="470" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="486" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="502" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="518" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="534" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="550" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="566" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="582" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="598" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="614" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="630" y="66" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="181" y="65" width="3" height="22" fill="#263238" stroke="none" rx="0" />
+<text x="654" y="81" text-anchor="start" font-size="12" fill="#78909c" font-weight="normal">5′ end: codon nt 0</text>
+<text x="138" y="115" text-anchor="end" font-size="13" fill="#263238" font-weight="normal">phase 1 · offset 11</text>
+<rect x="198" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="214" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="230" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="246" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="262" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="278" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="294" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="310" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="326" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="342" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="358" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="374" y="100" width="16" height="20" fill="#f58518" stroke="#b0bec5" rx="0" />
+<rect x="390" y="100" width="16" height="20" fill="#f58518" stroke="#b0bec5" rx="0" />
+<rect x="406" y="100" width="16" height="20" fill="#f58518" stroke="#b0bec5" rx="0" />
+<rect x="422" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="438" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="454" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="470" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="486" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="502" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="518" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="534" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="550" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="566" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="582" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="598" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="614" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="630" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="646" y="100" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="197" y="99" width="3" height="22" fill="#263238" stroke="none" rx="0" />
+<text x="670" y="115" text-anchor="start" font-size="12" fill="#78909c" font-weight="normal">5′ end: codon nt 1</text>
+<text x="138" y="149" text-anchor="end" font-size="13" fill="#263238" font-weight="normal">phase 2 · offset 13</text>
+<rect x="166" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="182" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="198" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="214" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="230" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="246" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="262" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="278" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="294" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="310" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="326" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="342" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="358" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="374" y="134" width="16" height="20" fill="#f58518" stroke="#b0bec5" rx="0" />
+<rect x="390" y="134" width="16" height="20" fill="#f58518" stroke="#b0bec5" rx="0" />
+<rect x="406" y="134" width="16" height="20" fill="#f58518" stroke="#b0bec5" rx="0" />
+<rect x="422" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="438" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="454" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="470" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="486" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="502" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="518" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="534" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="550" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="566" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="582" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="598" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="614" y="134" width="16" height="20" fill="white" stroke="#b0bec5" rx="0" />
+<rect x="165" y="133" width="3" height="22" fill="#263238" stroke="none" rx="0" />
+<text x="638" y="149" text-anchor="start" font-size="12" fill="#78909c" font-weight="normal">5′ end: codon nt 2</text>
+<text x="178" y="190" text-anchor="end" font-size="12" fill="#78909c" font-weight="normal">offset d</text>
+<text x="209.0" y="190" text-anchor="middle" font-size="12" fill="#78909c" font-weight="normal">8</text>
+<text x="247.0" y="190" text-anchor="middle" font-size="12" fill="#78909c" font-weight="normal">9</text>
+<text x="285.0" y="190" text-anchor="middle" font-size="12" fill="#78909c" font-weight="normal">10</text>
+<text x="323.0" y="190" text-anchor="middle" font-size="12" fill="#78909c" font-weight="normal">11</text>
+<text x="361.0" y="190" text-anchor="middle" font-size="12" fill="#78909c" font-weight="normal">12</text>
+<text x="399.0" y="190" text-anchor="middle" font-size="12" fill="#78909c" font-weight="normal">13</text>
+<text x="437.0" y="190" text-anchor="middle" font-size="12" fill="#78909c" font-weight="normal">14</text>
+<text x="475.0" y="190" text-anchor="middle" font-size="12" fill="#78909c" font-weight="normal">15</text>
+<text x="513.0" y="190" text-anchor="middle" font-size="12" fill="#78909c" font-weight="normal">16</text>
+<text x="178" y="218" text-anchor="end" font-size="13" fill="#263238" font-weight="normal">phase 0</text>
+<rect x="192" y="200" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="209.0" y="218" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">8</text>
+<rect x="230" y="200" width="34" height="26" fill="#fde0c5" stroke="#cfd8dc" rx="3" />
+<text x="247.0" y="218" text-anchor="middle" font-size="12" fill="#263238" font-weight="normal">9</text>
+<rect x="268" y="200" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="285.0" y="218" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">10</text>
+<rect x="306" y="200" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="323.0" y="218" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">11</text>
+<rect x="344" y="200" width="34" height="26" fill="#f58518" stroke="#cfd8dc" rx="3" />
+<text x="361.0" y="218" text-anchor="middle" font-size="12" fill="white" font-weight="bold">12</text>
+<rect x="382" y="200" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="399.0" y="218" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">13</text>
+<rect x="420" y="200" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="437.0" y="218" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">14</text>
+<rect x="458" y="200" width="34" height="26" fill="#fde0c5" stroke="#cfd8dc" rx="3" />
+<text x="475.0" y="218" text-anchor="middle" font-size="12" fill="#263238" font-weight="normal">15</text>
+<rect x="496" y="200" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="513.0" y="218" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">16</text>
+<text x="178" y="250" text-anchor="end" font-size="13" fill="#263238" font-weight="normal">phase 1</text>
+<rect x="192" y="232" width="34" height="26" fill="#fde0c5" stroke="#cfd8dc" rx="3" />
+<text x="209.0" y="250" text-anchor="middle" font-size="12" fill="#263238" font-weight="normal">8</text>
+<rect x="230" y="232" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="247.0" y="250" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">9</text>
+<rect x="268" y="232" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="285.0" y="250" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">10</text>
+<rect x="306" y="232" width="34" height="26" fill="#f58518" stroke="#cfd8dc" rx="3" />
+<text x="323.0" y="250" text-anchor="middle" font-size="12" fill="white" font-weight="bold">11</text>
+<rect x="344" y="232" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="361.0" y="250" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">12</text>
+<rect x="382" y="232" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="399.0" y="250" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">13</text>
+<rect x="420" y="232" width="34" height="26" fill="#fde0c5" stroke="#cfd8dc" rx="3" />
+<text x="437.0" y="250" text-anchor="middle" font-size="12" fill="#263238" font-weight="normal">14</text>
+<rect x="458" y="232" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="475.0" y="250" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">15</text>
+<rect x="496" y="232" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="513.0" y="250" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">16</text>
+<text x="178" y="282" text-anchor="end" font-size="13" fill="#263238" font-weight="normal">phase 2</text>
+<rect x="192" y="264" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="209.0" y="282" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">8</text>
+<rect x="230" y="264" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="247.0" y="282" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">9</text>
+<rect x="268" y="264" width="34" height="26" fill="#fde0c5" stroke="#cfd8dc" rx="3" />
+<text x="285.0" y="282" text-anchor="middle" font-size="12" fill="#263238" font-weight="normal">10</text>
+<rect x="306" y="264" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="323.0" y="282" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">11</text>
+<rect x="344" y="264" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="361.0" y="282" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">12</text>
+<rect x="382" y="264" width="34" height="26" fill="#f58518" stroke="#cfd8dc" rx="3" />
+<text x="399.0" y="282" text-anchor="middle" font-size="12" fill="white" font-weight="bold">13</text>
+<rect x="420" y="264" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="437.0" y="282" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">14</text>
+<rect x="458" y="264" width="34" height="26" fill="white" stroke="#cfd8dc" rx="3" />
+<text x="475.0" y="282" text-anchor="middle" font-size="12" fill="#cfd8dc" font-weight="normal">15</text>
+<rect x="496" y="264" width="34" height="26" fill="#fde0c5" stroke="#cfd8dc" rx="3" />
+<text x="513.0" y="282" text-anchor="middle" font-size="12" fill="#263238" font-weight="normal">16</text>
+<rect x="302" y="196" width="118" height="98" fill="none" stroke="#263238" rx="5" stroke-width="2"/>
+<text x="361.0" y="314" text-anchor="middle" font-size="12" fill="#263238" font-weight="bold">window c − 1, c, c + 1 with c = 12</text>
+<rect x="548" y="204" width="14" height="14" fill="#fde0c5" stroke="#cfd8dc" rx="2" />
+<text x="568" y="216" text-anchor="start" font-size="12" fill="#78909c" font-weight="normal">puts the P-site on a codon start</text>
+<rect x="548" y="228" width="14" height="14" fill="#f58518" stroke="none" rx="2" />
+<text x="568" y="240" text-anchor="start" font-size="12" fill="#78909c" font-weight="normal">offset chosen for the phase</text>
+</svg>

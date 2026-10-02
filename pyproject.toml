@@ -12,6 +12,9 @@ dependencies = ["numpy", "scipy", "pandas", "pysam"]
 [project.scripts]
 ribokit = "ribokit.cli:main"
 
+[project.optional-dependencies]
+docs = ["mkdocs-material"]
+
 [tool.setuptools.dynamic]
 version = {attr = "ribokit.__version__"}
 
