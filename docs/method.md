@@ -11,7 +11,8 @@ questions:
    inside that CDS, not merely if the read overlaps it.
 3. **Which CDS?** A read can fit several CDSs (isoforms, paralogs). ribokit
    splits such reads by expectation-maximisation (EM), in proportion to each
-   CDS's density of ribosomes.
+   CDS's density of ribosomes, accelerated so that near-identical CDSs don't
+   take forever to split ([step 6](#6-em)).
 
 ## At a glance
 
@@ -254,9 +255,42 @@ $$
 \frac{\alpha_t^{(k)} / L_t}{\sum_{s \in c} \alpha_s^{(k)} / L_s}
 $$
 
-It stops when no $\alpha_t$ moves by `--tol` reads or more (default 0.001). If
-that has not happened after `--max-iter` iterations (default 100 000), ribokit
-stops with an error instead of writing unconverged numbers.
+It stops when one of these steps moves no $\alpha_t$ by `--tol` reads or more
+(default 0.001). If that has not happened after `--max-iter` steps (default
+100 000), ribokit stops with an error instead of writing unconverged numbers.
+
+### Acceleration
+
+Taken step by step, this creeps: two CDSs that are hard to tell apart close
+only a small, roughly constant fraction of the remaining gap per step, so
+near-ties can need tens of thousands of plain EM steps or more (`tests/` has
+one that needs 138,000). ribokit instead runs [SQUAREM](#references)
+(scheme S3), which extrapolates past a pair of plain EM steps to where they
+are heading, instead of taking them one at a time:
+
+1. From the current estimate $\alpha^{(0)}$, take two plain EM steps:
+   $\alpha^{(1)} = F(\alpha^{(0)})$, $\alpha^{(2)} = F(\alpha^{(1)})$.
+2. Let $r = \alpha^{(1)} - \alpha^{(0)}$ and
+   $v = \alpha^{(2)} - 2\alpha^{(1)} + \alpha^{(0)}$, and extrapolate along
+   them:
+   $$
+   \alpha^{(\mathrm{sq})} = \alpha^{(0)} - 2s\,r + s^2 v, \qquad
+   s = -\frac{\lVert r \rVert}{\lVert v \rVert}
+   $$
+   If a step this long would send a count negative, $s$ is backed off towards
+   $-1$, the shortest step SQUAREM takes ($s = -1$ reproduces $\alpha^{(2)}$
+   exactly, i.e. the two plain steps).
+3. Take one more plain EM step from $\alpha^{(\mathrm{sq})}$. If its
+   log-likelihood is at least as high as $\alpha^{(0)}$'s, keep it as the new
+   estimate; otherwise fall back to $\alpha^{(2)}$, which plain EM already
+   guarantees is no worse.
+
+Each cycle costs two or three plain EM steps, which is what `--max-iter` and
+`stats.tsv`'s `em_iterations` count — not cycles. The destination is the same
+fixed point plain EM would reach (counts never go negative and the
+log-likelihood never drops along the way); SQUAREM only shortens the path, by
+extrapolating where the plain iteration is still heading rather than
+following it step by step.
 
 ### Try it
 
@@ -293,7 +327,7 @@ Each file is written as `<prefix>.<name>`, with the prefix from `--out-prefix`:
 | `quant.tsv` | One row per CDS, sorted by `Name`: `Length` and `EffectiveLength` (CDS length without the stop codon), `NumReads` ($\alpha_t$, expected reads), `ritpm`. `NA` where no read is compatible. |
 | `offsets.tsv` | The offsets, with support and $z$ ([step 3](#what-offsetstsv-reports)). |
 | `ties.tsv` | CDSs that no read tells apart. |
-| `stats.tsv` | Reads left after each filter, EM iterations and log-likelihood. |
+| `stats.tsv` | Reads left after each filter, EM steps and log-likelihood. |
 
 `NumReads` sums to `reads_assigned`. `ritpm` is the density, scaled to sum to
 one million:
@@ -332,7 +366,7 @@ deletion, and reads of the wrong length.
 | `reads_assigned` | 14,476 | 190 UTR footprints whose P-site is outside every CDS |
 
 Of the 14,476 assigned reads, 6,752 are unique and 7,724 fall in 2 equivalence
-classes; the EM converges in 46 iterations.
+classes; SQUAREM converges in 10 EM steps.
 
 **Counts.**
 
@@ -362,3 +396,7 @@ this.
   Identifying A- and P-site locations on ribosome-protected mRNA fragments using
   Integer Programming. *Scientific Reports* 9:6256.
   [doi:10.1038/s41598-019-42348-x](https://doi.org/10.1038/s41598-019-42348-x)
+- Varadhan R, Roland C (2008). Simple and Globally Convergent Methods for
+  Accelerating the Convergence of Any EM Algorithm. *Scandinavian Journal of
+  Statistics* 35(2):335-353.
+  [doi:10.1111/j.1467-9469.2007.00585.x](https://doi.org/10.1111/j.1467-9469.2007.00585.x)

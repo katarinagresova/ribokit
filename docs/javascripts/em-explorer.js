@@ -38,7 +38,8 @@
     return { L, unique, classes, truth: [rho[0] * L[0], rho[1] * L[1]] };
   }
 
-  // Same steps as ribokit.quant.em: even start, then alpha_t = u_t + sum_c n_c w_t / sum_{s in c} w_s, w = alpha / L.
+  // Plain EM step, as in ribokit.quant.em: even start, then alpha_t = u_t + sum_c n_c w_t / sum_{s in c} w_s, w = alpha / L.
+  // `ribokit quant` accelerates this with SQUAREM (method.md, "Acceleration"); shown here unaccelerated, step by step.
   function em(m, useLength) {
     const len = useLength ? m.L : [1, 1];
     let alpha = m.unique.slice();
@@ -81,7 +82,7 @@
 
     const W = 720, H = 330;
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img",
-                            "aria-label": "Two CDSs, their reads, and the EM estimate over iterations" }, root);
+                            "aria-label": "Two CDSs, their reads, and the EM estimate over steps" }, root);
     const readout = document.createElement("p");
     readout.className = "rk-readout";
     root.appendChild(readout);
@@ -94,7 +95,7 @@
       q("rB").nextElementSibling.textContent = rho[1].toFixed(1);
       m = model(SCENARIOS[q("sc").value], rho);
       res = em(m, q("len").checked);
-      root.rk = { model: m, iterations: res.trace.length - 1, alpha: res.trace[res.trace.length - 1] };
+      root.rk = { model: m, steps: res.trace.length - 1, alpha: res.trace[res.trace.length - 1] };
     }
 
     function draw() {
@@ -135,7 +136,7 @@
       });
       label(svg, 125, top - 10, "expected reads", { fill: C.muted });
 
-      // Trace: estimate per iteration, truth dashed.
+      // Trace: estimate per step, truth dashed.
       const px0 = 300, pw = W - px0 - 10, X = (i) => px0 + (i / Math.max(K, 10)) * pw;
       el("line", { x1: px0, x2: px0 + pw, y1: base, y2: base, stroke: "#b0bec5" }, svg);
       el("line", { x1: px0, x2: px0, y1: top, y2: base, stroke: "#b0bec5" }, svg);
@@ -146,16 +147,16 @@
         el("polyline", { points: pts, fill: "none", stroke: C[n], "stroke-width": 2 }, svg);
         el("circle", { cx: X(k), cy: Y(alpha[t]), r: 3.5, fill: C[n] }, svg);
       });
-      label(svg, px0 + pw / 2, top - 10, "estimate per iteration (dashed: truth)", { fill: C.muted });
+      label(svg, px0 + pw / 2, top - 10, "estimate per step (dashed: truth)", { fill: C.muted });
       label(svg, px0, base + 15, "0", { "font-size": 11, fill: C.muted });
       label(svg, px0 + pw, base + 15, String(Math.max(K, 10)), { "font-size": 11, fill: C.muted, "text-anchor": "end" });
-      label(svg, px0 + pw / 2, base + 30, "iteration", { fill: C.muted, "font-size": 11 });
+      label(svg, px0 + pw / 2, base + 30, "EM step", { fill: C.muted, "font-size": 11 });
 
       // Readout.
       const done = k === K;
-      let s = `<b>Iteration ${k}</b>` + (k === 0 ? " (even start: each shared read split equally)" :
+      let s = `<b>EM step ${k}</b>` + (k === 0 ? " (even start: each shared read split equally)" :
         `, largest change ${res.changes[k] < 1e-6 ? "0" : res.changes[k].toPrecision(2)} reads`) +
-        (done ? ` · <b>converged</b> after ${K} iterations (no estimate moves by ${TOL} reads or more).` : ".");
+        (done ? ` · <b>converged</b> after ${K} EM steps (no estimate moves by ${TOL} reads or more).` : ".");
       if (done) {
         if (q("sc").value === "tie") {
           s += " No read tells A and B apart, so the EM keeps its even starting split whatever the true densities:" +

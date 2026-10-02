@@ -29,8 +29,10 @@ def main(argv=None):
     q.add_argument("--offsets", help="use this offsets.tsv instead of estimating offsets from the BAM")
     q.add_argument("--min-offset-support", type=float, default=30,
                    help="reads spanning a start or stop codon needed to give a read length offsets")
-    q.add_argument("--tol", type=float, default=1e-3, help="EM stops when no expected count moves by this many reads")
-    q.add_argument("--max-iter", type=int, default=100_000)
+    q.add_argument("--tol", type=float, default=1e-3,
+                   help="EM stops when one step moves no expected count by this many reads")
+    q.add_argument("--max-iter", type=int, default=100_000,
+                   help="give up after this many EM steps (SQUAREM counts 2-3 per cycle)")
     a = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
     quantify(a.bam, a.gtf, a.fasta, a.read_lengths, a.out_prefix, offsets_path=a.offsets,
