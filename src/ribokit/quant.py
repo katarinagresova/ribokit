@@ -6,7 +6,10 @@ probability theta_t, and from each of its L_t positions equally, so
 P(read) = sum over compatible t of theta_t / L_t. RiboStan's Stan model has no
 1/L_t, which splits shared reads by read share instead of density.
 EM starts from an even split of every read over its compatible CDSs (no
-randomness) and runs until no expected count moves by more than `tol` reads.
+randomness) and runs until one EM step moves no expected count by `tol` reads.
+SQUAREM extrapolates along pairs of EM steps: plain EM needs 10^5-10^6 steps
+where near-identical CDSs (histone paralogs, UTR variants) split their reads
+by a handful of distinguishing reads.
 """
 import logging
 
@@ -50,22 +53,53 @@ def equivalence_classes(read, tx, n_orf):
 
 
 def em(unique, classes, counts, lengths, tol, max_iter):
-    """Expected reads per ORF. Returns (alpha, iterations, last max change, log-likelihood)."""
+    """Expected reads per ORF, by EM accelerated with SQUAREM (Varadhan & Roland 2008, scheme S3).
+    Stops when one EM step moves no expected count by `tol` reads; `max_iter` caps the EM steps.
+    Returns (alpha, EM steps, last max change, log-likelihood)."""
     classes_t = classes.T.tocsr()
     sizes = np.diff(classes.indptr)
-    alpha = unique + classes_t @ (counts / sizes)
-    change = np.inf
-    for it in range(1, max_iter + 1):
-        w = alpha / lengths
-        new = unique + w * (classes_t @ (counts / (classes @ w)))
-        change = np.max(np.abs(new - alpha)) if new.size else 0.0
-        alpha = new
-        if change < tol:
-            break
     n = unique.sum() + counts.sum()
-    w = alpha / lengths / n
-    loglik = (unique[unique > 0] * np.log(w[unique > 0])).sum() + (counts * np.log(classes @ w)).sum()
-    return alpha, it, change, loglik
+
+    def step(alpha):
+        w = alpha / lengths
+        return unique + w * (classes_t @ (counts / (classes @ w)))
+
+    def loglik(alpha):
+        w = alpha / lengths / n
+        return (unique[unique > 0] * np.log(w[unique > 0])).sum() + (counts * np.log(classes @ w)).sum()
+
+    alpha = unique + classes_t @ (counts / sizes)
+    ll, steps, change = loglik(alpha), 0, np.inf
+    while steps < max_iter:
+        a1 = step(alpha)
+        steps += 1
+        r = a1 - alpha
+        change = np.max(np.abs(r)) if r.size else 0.0
+        if change < tol:
+            alpha = a1
+            break
+        a2 = step(a1)
+        steps += 1
+        v = a2 - 2 * a1 + alpha
+        # sums, not BLAS dot products: their result can depend on the thread count
+        vv = (v * v).sum()
+        s = min(-np.sqrt((r * r).sum() / vv), -1.0) if vv > 0 else -1.0
+        # s = -1 is a2, two plain EM steps; move s towards it until no positive count turns <= 0
+        for _ in range(30):
+            ext = alpha - 2 * s * r + s * s * v
+            if (ext[alpha > 0] > 0).all():
+                break
+            s = (s - 1) / 2
+        else:
+            ext = a2
+        a3 = step(ext)
+        steps += 1
+        ll3 = loglik(a3)
+        if ll3 >= ll:
+            alpha, ll = a3, ll3
+        else:
+            alpha, ll = a2, loglik(a2)
+    return alpha, steps, change, loglik(alpha)
 
 
 def tie_groups(unique, classes):

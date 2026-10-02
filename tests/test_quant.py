@@ -51,6 +51,16 @@ def test_em_length_term():
     np.testing.assert_allclose(alpha / alpha.sum(), [0.6, 0.4], atol=1e-6)
 
 
+def test_em_boundary_converges():
+    # two equal CDSs, only A has unique reads: the MLE gives B nothing. Plain EM shrinks B by 2/40002
+    # per step, needs 138k steps for tol 1e-3 and stops with B at 20 reads.
+    unique = np.array([2.0, 0.0])
+    classes = sp.csr_matrix(np.array([[1.0, 1.0]]))
+    alpha, steps, change, _ = quant.em(unique, classes, np.array([40000.0]), np.array([408.0, 408.0]), 1e-3, 100_000)
+    assert change < 1e-3 and steps < 100
+    assert alpha[1] < 0.01 and alpha.sum() == pytest.approx(40002)
+
+
 def test_counts_match_truth(run, data):
     q, truth = run["quant"], data["truth"]
     for t in ("A1", "D1"):

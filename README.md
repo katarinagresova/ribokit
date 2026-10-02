@@ -34,7 +34,7 @@ Inputs:
 | `<prefix>.quant.tsv` | `Name Length EffectiveLength ritpm NumReads`, one row per CDS, sorted by Name. `Length` = CDS without the stop codon. `NumReads` = expected reads; they sum to the assigned reads. `ritpm` = reads per nt, scaled to sum to 1e6. `NA` where no read is compatible. |
 | `<prefix>.offsets.tsv` | per (length, phase): `offset` (nt from the 5' end to the P-site codon), `support` (reads spanning a start or stop), `z` (how firmly the data pin this phase's offset: score lead of the chosen window over the best window that gives this phase another offset, divided by the square root of the reads the two disagree on; below about 4 = weakly determined), `reads` |
 | `<prefix>.ties.tsv` | CDSs that no read tells apart (e.g. identical paralogs); their split comes from the EM's even start, not from the data |
-| `<prefix>.stats.tsv` | reads left after each filter, EM iterations and log-likelihood |
+| `<prefix>.stats.tsv` | reads left after each filter, EM steps and log-likelihood |
 
 ## Method, in short
 
@@ -50,9 +50,9 @@ Inputs:
 4. **Assignment.** A read is compatible with a CDS if its P-site falls inside
    it.
 5. **EM.** Expectation-maximisation over equivalence classes, with
-   P(read | CDS) = 1/length. It starts deterministically and runs until no
-   expected count moves by more than 1e-3 reads. It fails if it does not get
-   there.
+   P(read | CDS) = 1/length, accelerated with SQUAREM. It starts
+   deterministically and runs until an EM step moves no expected count by
+   more than 1e-3 reads. It fails if it does not get there.
 
 ## License
 
