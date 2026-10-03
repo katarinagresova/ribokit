@@ -260,10 +260,12 @@ def outside_id(txs, orfs, name, p):
     return f"{name}:leader" if p < tx["cds_start"] else f"{name}:trailer"
 
 
-def make_orf_dataset(directory, seed=2):
+def make_orf_dataset(directory, seed=2, background_under_orfs=False):
     """Reference, BAM and ORF table (with rows to drop, and U2's CDS listed as U2_main).
     truth[component] = reads drawn from it whose P-site at the phase-0 offset (12) is in it
-    (ORF: its span; outside component: its positions); the rest are counted in truth["leaked"]."""
+    (ORF: its span; outside component: its positions); the rest are counted in truth["leaked"].
+    background_under_orfs: background over every position, as for the score; truth then counts
+    the background drawn under ORFs as leaked."""
     rng = np.random.default_rng(seed)
     txs, orfs = build_orf_transcripts(rng)
     genome, pos = [], 0
@@ -279,8 +281,9 @@ def make_orf_dataset(directory, seed=2):
     for orf_id, n in PEAKS.items():
         sources += [(orf_id, orfs[orf_id][0], orfs[orf_id][1])] * n
     for name, tx in txs.items():
-        free = [p for p in range(len(tx["seq"])) if outside_id(txs, orfs, name, p)]
-        sources += [(outside_id(txs, orfs, name, p), name, p) for p in rng.choice(free, int(BACKGROUND * len(free)))]
+        free = [p for p in range(len(tx["seq"])) if background_under_orfs or outside_id(txs, orfs, name, p)]
+        sources += [(outside_id(txs, orfs, name, p) or "background", name, p)
+                    for p in rng.choice(free, int(BACKGROUND * len(free)))]
     truth, reads = {}, []
     for comp, name, p in sources:
         seq = txs[name]["seq"]

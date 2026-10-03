@@ -228,10 +228,22 @@ def run(bam_path, gtf, fasta, lengths, out_prefix, orfs_path=None, offsets_path=
                  components_in_ties=sum(len(g) for g in ties))
     stats.update({f"numreads_{t}": float(alpha[comps["type"].to_numpy() == t].sum()) for t in ORF_TYPES + OUTSIDE_TYPES})
 
+    # for `ribokit score`: P-sites per codon, frame and length of each ORF but the annotated CDSs,
+    # one count per alignment. Codon n is the stop codon: the +1 and +2 nt decoys reach into it.
+    sel = np.flatnonzero(orfs["type"].to_numpy() != "CDS")
+    ci, ck = orf_hits(aln.ref, psite, orf_ref[sel], start[sel], orfs["end"].to_numpy()[sel] + 3)
+    rel = psite[ci] - start[sel][ck]
+    codons = (pd.DataFrame({"orf": sel[ck], "codon": rel // 3, "length": aln.length[ci], "frame": rel % 3})
+              .groupby(["orf", "codon", "length", "frame"]).size().unstack("frame")
+              .reindex(columns=range(3)).fillna(0).astype(np.int64).reset_index())
+    codons.insert(0, "ORF_id", orfs["ORF_id"].to_numpy()[codons.pop("orf")])
+    codons.columns = ["ORF_id", "codon", "length", "frame0", "frame1", "frame2"]
+
     comps.sort_values(["Name", "start", "end", "ORF_id"], kind="stable").to_csv(
         f"{out_prefix}.orfs.tsv", sep="\t", index=False, na_rep="NA")
     offsets_df.to_csv(f"{out_prefix}.offsets.tsv", sep="\t", index=False, na_rep="NA")
     frames.to_csv(f"{out_prefix}.frames.tsv", sep="\t", index=False, na_rep="NA")
+    codons.to_csv(f"{out_prefix}.codons.tsv", sep="\t", index=False)
     ids = comps["ORF_id"].to_numpy()
     pd.DataFrame([(ids[t], ids[g[0]]) for g in ties for t in g],
                  columns=["ORF_id", "tie_group"]).to_csv(f"{out_prefix}.ties.tsv", sep="\t", index=False)

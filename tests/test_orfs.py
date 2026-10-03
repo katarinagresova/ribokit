@@ -116,8 +116,24 @@ def test_orf_counts_match_truth(orf_run, orf_data):
 def test_orf_run_deterministic(orf_run, orf_data, tmp_path):
     orfs.run(str(orf_data["bam"]), str(orf_data["gtf"]), str(orf_data["fasta"]), WINDOW, str(tmp_path / "again"),
              orfs_path=str(orf_data["orfs"]))
-    for suffix in ("orfs.tsv", "ties.tsv", "stats.tsv"):
+    for suffix in ("orfs.tsv", "ties.tsv", "stats.tsv", "codons.tsv"):
         assert filecmp.cmp(f"{orf_run['prefix']}.{suffix}", tmp_path / f"again.{suffix}", shallow=False), suffix
+
+
+def test_codons_from_psites(orf_run):
+    # every P-site in an ORF but the annotated CDSs, the stop codon included, by codon, length and frame
+    t = orf_run["table"]
+    ps = pd.read_csv(f"{orf_run['prefix']}.psites.tsv", sep="\t")
+    expected = []
+    for i, r in t[t["type"].isin(orfs.ORF_TYPES[1:])].iterrows():
+        rel = ps.loc[(ps["Name"] == r["Name"]) & (ps["psite"] >= r["start"]) & (ps["psite"] < r["end"] + 3)]
+        rel = rel.assign(ORF_id=i, codon=(rel["psite"] - r["start"]) // 3, frame=(rel["psite"] - r["start"]) % 3)
+        expected.append(rel.groupby(["ORF_id", "codon", "length", "frame"]).size())
+    expected = pd.concat(expected).unstack("frame", fill_value=0).add_prefix("frame").reset_index()
+    got = pd.read_csv(f"{orf_run['prefix']}.codons.tsv", sep="\t")
+    key = ["ORF_id", "codon", "length"]
+    assert got.sort_values(key).reset_index(drop=True).equals(expected.sort_values(key).reset_index(drop=True))
+    assert set(got["ORF_id"]) == set(t.index[t["type"].isin(orfs.ORF_TYPES[1:])]) - {"U1_cand"}
 
 
 def test_frame_term_returns_overlap_reads_to_cds(orf_run, orf_data, tmp_path, monkeypatch):
