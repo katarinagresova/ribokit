@@ -86,6 +86,18 @@ def _open_fasta(path):
     return pysam.FastaFile(path, filepath_index=fai)
 
 
+def _tx_seq(fa, t):
+    seq = "".join(fa.fetch(t["chrom"], s, e) for s, e in sorted(t["exons"])).upper()
+    return revcomp(seq) if t["strand"] == "-" else seq
+
+
+def transcript_seqs(gtf, fasta, ids):
+    """{transcript_id: sequence, 5' to 3'} for those of `ids` that are in the GTF."""
+    txs = read_gtf(gtf)
+    fa = _open_fasta(fasta)
+    return {tid: _tx_seq(fa, txs[tid]) for tid in sorted(ids) if tid in txs}
+
+
 def load_annotation(gtf, fasta):
     txs = read_gtf(gtf)
     fa = _open_fasta(fasta)
@@ -101,9 +113,7 @@ def load_annotation(gtf, fasta):
         if t["chrom"] not in chroms:
             raise ValueError(f"{t['chrom']} (transcript {tid}) is not in {fasta}")
         exons = sorted(t["exons"], reverse=t["strand"] == "-")   # transcript order
-        seq = "".join(fa.fetch(t["chrom"], s, e) for s, e in sorted(t["exons"])).upper()
-        if t["strand"] == "-":
-            seq = revcomp(seq)
+        seq = _tx_seq(fa, t)
         cs = min(s for s, _ in t["cds"])
         ce = max(e for _, e in t["cds"])
         first, last = (cs, ce - 1) if t["strand"] == "+" else (ce - 1, cs)

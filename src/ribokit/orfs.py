@@ -1,25 +1,38 @@
-"""P-sites that keep the reading frame, for counting ORFs that are not the annotated CDS.
+"""Reads per ORF in its reading frame: uORFs, uoORFs and other ORFs besides the annotated CDS.
 
-quant's offsets depend on the phase of the 5' end relative to the CDS, so every
+P-sites. quant's offsets depend on the phase of the 5' end relative to the CDS, so every
 P-site lands on a codon of the CDS: right for the CDS, but it erases any other
 reading frame. Here each read length has one offset, its phase-0 offset (phase 0
 is the untrimmed phase, a multiple of 3), and P-site = 5' end + offset on every
 transcript, wherever it lands. A read 1-2 nt short at the 5' end then puts its
 P-site in frame 1 or 2 of the CDS. How often that happens is the length's frame
-profile, measured on reads well inside CDSs (frames.tsv).
+profile pi_l, measured on reads well inside CDSs (frames.tsv).
+
+Components. The ORFs are the ORF table's plus the annotated CDSs. Every position of
+a transcript that is in no ORF belongs to one outside component: the leader (5' of
+the annotated CDS), the trailer (3' of it, its stop codon included), or the whole
+transcript if it has no CDS. So every read with a P-site is counted somewhere.
+
+EM. A read is compatible with each component that holds one of its P-sites.
+P(read | ORF k) = 3 pi_l(phi) / L_k with phi = (P-site - start_k) mod 3, and
+P(read | outside component) = 1 / L. When all of a read's components are ORFs that
+put it in the same frame, the frame term cancels and this is quant's model.
 """
 import logging
 
 import numpy as np
 import pandas as pd
+import pysam
 
-from . import annotation, bam, offsets
+from . import annotation, bam, offsets, quant
 
 log = logging.getLogger(__name__)
 
 # frame profiles use reads at least this many nt inside the CDS at both ends:
 # no start or stop peaks
 INTERIOR = 15
+ORF_TYPES = ("CDS", "uORF", "uoORF", "other")
+OUTSIDE_TYPES = ("leader", "trailer", "transcript")
 
 
 def psite_offsets(df, lengths):
@@ -51,11 +64,110 @@ def frame_profile(aln, anno, psite, w, off, lengths):
     })
 
 
-def run(bam_path, gtf, fasta, lengths, out_prefix, offsets_path=None, min_support=30):
+def frame_weights(frames):
+    """3 pi_l(f), indexed (length - lo, frame): the EM's frame term. One pseudo-read per frame,
+    so no weight is 0 and a length without interior reads gets 1 (no frame information)."""
+    reads = frames["reads"].to_numpy()[:, None]
+    n = np.nan_to_num(frames[["frame0", "frame1", "frame2"]].to_numpy()) * reads
+    return 3 * (n + 1) / (reads + 3)
+
+
+def orf_table(path, gtf, fasta, anno, bam_len, stats):
+    """The ORFs: the table's (TSV ORF_id Name start end, in transcript coordinates: start = first
+    nt of the start codon, end = one past the last sense codon) and the annotated CDSs it does not
+    list. A row is dropped and counted if its transcript is not in the GTF, its length is not a
+    positive multiple of 3, it runs off the transcript or no stop codon follows. The start codon
+    is not checked. The type comes from the coordinates against the annotated CDS: uORF ends
+    before it, uoORF starts before it out of frame and ends in or after it."""
+    idx = anno.index()
+    cds = pd.DataFrame({"ORF_id": [f"{t}:CDS" for t in anno.tx], "Name": anno.tx, "start": anno.cds_start,
+                        "end": anno.cds_end, "start_codon": anno.start_codon})
+    if path is None:
+        table = cds.iloc[:0]
+    else:
+        table = pd.read_csv(path, sep="\t", dtype={"ORF_id": str, "Name": str})[["ORF_id", "Name", "start", "end"]]
+        seqs = annotation.transcript_seqs(gtf, fasta, set(table["Name"]))
+        for name, seq in seqs.items():
+            if name in bam_len and bam_len[name] != len(seq):
+                raise ValueError(f"{name} is {bam_len[name]} nt in the BAM but {len(seq)} nt in the annotation")
+        dropped = dict.fromkeys(("transcript_not_in_gtf", "not_multiple_of_3", "off_transcript", "no_stop"), 0)
+        keep, start_codon = [], []
+        for name, s, e in zip(table["Name"], table["start"], table["end"]):
+            seq = seqs.get(name)
+            if seq is None:
+                why = "transcript_not_in_gtf"
+            elif e <= s or (e - s) % 3:
+                why = "not_multiple_of_3"
+            elif s < 0 or e + 3 > len(seq):
+                why = "off_transcript"
+            elif seq[e:e + 3] not in annotation.STOPS:
+                why = "no_stop"
+            else:
+                keep.append(True)
+                start_codon.append(seq[s:s + 3])
+                continue
+            dropped[why] += 1
+            keep.append(False)
+        stats["orf_table_rows"] = len(table)
+        stats.update({f"orfs_dropped_{k}": v for k, v in dropped.items()})
+        table = table[keep].assign(start_codon=start_codon)
+    listed = set(zip(table["Name"], table["start"], table["end"]))
+    added = cds[[k not in listed for k in zip(cds["Name"], cds["start"], cds["end"])]]
+    stats["orfs_cds_added"] = len(added)
+    orfs = pd.concat([table, added], ignore_index=True)
+    if orfs["ORF_id"].duplicated().any():
+        raise ValueError(f"ORF_id {orfs.loc[orfs['ORF_id'].duplicated(), 'ORF_id'].iloc[0]} is not unique")
+    c = np.array([idx.get(n, -1) for n in orfs["Name"]], dtype=np.int64)
+    has = c >= 0
+    cs, ce = np.where(has, anno.cds_start[c], -1), np.where(has, anno.cds_end[c], -1)
+    s, e = orfs["start"].to_numpy(np.int64), orfs["end"].to_numpy(np.int64)
+    orfs["type"] = np.select([has & (s == cs) & (e == ce), has & (e <= cs), has & (s < cs) & ((cs - s) % 3 != 0)],
+                             ORF_TYPES[:3], "other")
+    stats.update({f"orfs_{t}": int((orfs["type"] == t).sum()) for t in ORF_TYPES})
+    return orfs[["ORF_id", "Name", "type", "start", "end", "start_codon"]].astype({"start": np.int64, "end": np.int64})
+
+
+def outside_components(orfs, anno, refs, ref_len):
+    """Per BAM reference, its positions in no ORF: leader and trailer, or transcript if it has no
+    annotated CDS. Components without a position are left out. Length = their positions."""
+    idx = anno.index()
+    spans = {}
+    for name, s, e in zip(orfs["Name"], orfs["start"], orfs["end"]):
+        spans.setdefault(name, []).append((s, e))
+    rows = []
+    for name, n in zip(refs, ref_len):
+        c = idx.get(name)
+        regions = ([("transcript", 0, n)] if c is None else
+                   [("leader", 0, anno.cds_start[c]), ("trailer", anno.cds_end[c], n)])
+        covered = np.zeros(n, dtype=bool)
+        for s, e in spans.get(name, ()):
+            covered[s:e] = True
+        for kind, a, b in regions:
+            free = int(b - a - covered[a:b].sum())
+            if free > 0:
+                rows.append((f"{name}:{kind}", name, kind, a, b, free))
+    return pd.DataFrame(rows, columns=["ORF_id", "Name", "type", "start", "end", "Length"])
+
+
+def orf_hits(ref, psite, orf_ref, start, end):
+    """(alignment, ORF) pairs whose P-site is in the ORF: start <= P-site < end, same reference."""
+    key = ref * 2**32 + psite
+    order = np.argsort(key, kind="stable")
+    lo = np.searchsorted(key[order], orf_ref * 2**32 + start)
+    n = np.searchsorted(key[order], orf_ref * 2**32 + end) - lo
+    i = order[np.repeat(lo - np.cumsum(n) + n, n) + np.arange(n.sum())]
+    return i, np.repeat(np.arange(n.size), n)
+
+
+def run(bam_path, gtf, fasta, lengths, out_prefix, orfs_path=None, offsets_path=None, min_support=30,
+        tol=1e-3, max_iter=100_000):
     stats = {}
     anno = annotation.load_annotation(gtf, fasta)
     stats.update({f"annotation_{k}": v for k, v in anno.stats.items()})
     aln = bam.read_bam(bam_path, anno, stats)
+    with pysam.AlignmentFile(bam_path, "rb", check_sq=False) as f:
+        ref_len = np.array(f.lengths, dtype=np.int64)
+    orfs = orf_table(orfs_path, gtf, fasta, anno, dict(zip(aln.refs, ref_len.tolist())), stats)
 
     lo, hi = lengths
     aln = aln.subset((aln.length >= lo) & (aln.length <= hi))
@@ -71,13 +183,58 @@ def run(bam_path, gtf, fasta, lengths, out_prefix, offsets_path=None, min_suppor
     off = psite_offsets(offsets_df, lengths)
     aln = aln.subset(off[aln.length - lo] >= 0)
     psite = aln.pos5 + off[aln.length - lo]
+    on = psite < ref_len[aln.ref]   # a long 3' soft clip at the transcript's end can push it past
+    stats["alignments_psite_off_transcript"] = int((~on).sum())
+    aln, psite = aln.subset(on), psite[on]
     stats["reads_with_psite"] = aln.count_reads()
 
     frames = frame_profile(aln, anno, psite, offsets.read_weights(aln), off, lengths)
     log.info("frame profiles:\n%s", frames.to_string(index=False))
 
+    # components: the ORFs, then the outside components
+    outside = outside_components(orfs, anno, aln.refs, ref_len)
+    comps = pd.concat([orfs.assign(Length=orfs["end"] - orfs["start"]), outside], ignore_index=True)
+    n_orf = len(orfs)
+    ref_index = {r: i for i, r in enumerate(aln.refs)}
+    orf_ref = np.array([ref_index.get(n, -1) for n in orfs["Name"]], dtype=np.int64)
+    start = orfs["start"].to_numpy()
+    i, k = orf_hits(aln.ref, psite, orf_ref, start, orfs["end"].to_numpy())
+    phi = (psite[i] - start[k]) % 3
+    w_orf = frame_weights(frames)[aln.length[i] - lo, phi]
+    # P-sites in no ORF: the outside component of their region on their reference
+    out_index = {(n, t): n_orf + j for j, (n, t) in enumerate(zip(outside["Name"], outside["type"]))}
+    ref_comp = np.array([[out_index.get((r, t), -1) for t in OUTSIDE_TYPES] for r in aln.refs],
+                        dtype=np.int64).reshape(-1, 3)
+    m = np.ones(aln.read.size, dtype=bool)
+    m[i] = False
+    region = np.where(aln.tx[m] < 0, 2, np.where(psite[m] < anno.cds_start[aln.tx[m]], 0, 1))
+    comp_out = ref_comp[aln.ref[m], region]
+    assert (comp_out >= 0).all()
+
+    unique, classes, counts = quant.equivalence_classes(
+        np.r_[aln.read[i], aln.read[m]], np.r_[k, comp_out], len(comps), np.r_[w_orf, np.ones(m.sum())])
+    stats.update(reads_unique=int(unique.sum()), reads_multi=int(counts.sum()), equivalence_classes=len(counts))
+    alpha, iterations, change, loglik = quant.em(unique, classes, counts, comps["Length"].to_numpy(float),
+                                                 tol, max_iter)
+    stats.update(em_iterations=iterations, em_last_max_change=change, em_tol=tol, em_loglik=loglik)
+    log.info("EM: %d iterations, last max change %.3g reads, log-likelihood %.6f", iterations, change, loglik)
+    if change >= tol:
+        raise RuntimeError(f"EM did not converge in {max_iter} iterations (last max change {change:.3g} reads)")
+
+    has_reads = (unique > 0) | (np.diff(classes.T.tocsr().indptr) > 0)
+    comps["NumReads"] = np.where(has_reads, alpha, np.nan)
+    ties = quant.tie_groups(unique, classes)
+    stats.update(components=len(comps), components_with_reads=int(has_reads.sum()), tie_groups=len(ties),
+                 components_in_ties=sum(len(g) for g in ties))
+    stats.update({f"numreads_{t}": float(alpha[comps["type"].to_numpy() == t].sum()) for t in ORF_TYPES + OUTSIDE_TYPES})
+
+    comps.sort_values(["Name", "start", "end", "ORF_id"], kind="stable").to_csv(
+        f"{out_prefix}.orfs.tsv", sep="\t", index=False, na_rep="NA")
     offsets_df.to_csv(f"{out_prefix}.offsets.tsv", sep="\t", index=False, na_rep="NA")
     frames.to_csv(f"{out_prefix}.frames.tsv", sep="\t", index=False, na_rep="NA")
+    ids = comps["ORF_id"].to_numpy()
+    pd.DataFrame([(ids[t], ids[g[0]]) for g in ties for t in g],
+                 columns=["ORF_id", "tie_group"]).to_csv(f"{out_prefix}.ties.tsv", sep="\t", index=False)
     pd.DataFrame({
         "read": np.array(aln.read_names, dtype=object)[aln.read],
         "Name": np.array(aln.refs, dtype=object)[aln.ref],
@@ -86,4 +243,4 @@ def run(bam_path, gtf, fasta, lengths, out_prefix, offsets_path=None, min_suppor
     }).to_csv(f"{out_prefix}.psites.tsv", sep="\t", index=False)
     pd.DataFrame(list(stats.items()), columns=["stat", "value"]).to_csv(
         f"{out_prefix}.stats.tsv", sep="\t", index=False)
-    return frames, offsets_df, stats
+    return comps, frames, offsets_df, stats

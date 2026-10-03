@@ -35,10 +35,17 @@ def assign(aln, anno, table, lengths):
     return has_off, in_cds, psite
 
 
-def equivalence_classes(read, tx, n_orf):
-    """unique[t] = reads compatible with t alone; classes = CSR (class x ORF), counts per class.
-    A read with several compatible P-sites on one transcript counts once for it."""
-    pairs = np.unique(read * n_orf + tx)
+def equivalence_classes(read, tx, n_orf, weight=None):
+    """unique[t] = reads compatible with t alone; classes = CSR (class x ORF) holding each member's
+    weight in P(read | ORF) (1 without `weight`), counts per class. A read with several compatible
+    P-sites on one ORF counts once for it, with the largest weight."""
+    w = np.ones(read.size) if weight is None else weight
+    key = read * n_orf + tx
+    o = np.lexsort((-w, key))
+    key, w = key[o], w[o]
+    first = np.ones(key.size, dtype=bool)
+    first[1:] = key[1:] != key[:-1]
+    pairs, w = key[first], w[first]
     r, t = pairs // n_orf, pairs % n_orf
     starts = np.flatnonzero(np.r_[True, r[1:] != r[:-1]])
     sizes = np.diff(np.r_[starts, r.size])
@@ -46,12 +53,13 @@ def equivalence_classes(read, tx, n_orf):
     unique = np.bincount(t[starts[single]], minlength=n_orf).astype(float)
     counts = {}
     for s, n in zip(starts[~single], sizes[~single]):
-        key = t[s:s + n].tobytes()
+        key = t[s:s + n].tobytes() + w[s:s + n].tobytes()
         counts[key] = counts.get(key, 0) + 1
-    members = [np.frombuffer(k, dtype=np.int64) for k in counts]
-    indptr = np.r_[0, np.cumsum([m.size for m in members])].astype(np.int64)
-    indices = np.concatenate(members) if members else np.zeros(0, dtype=np.int64)
-    classes = sp.csr_matrix((np.ones(indices.size), indices, indptr), shape=(len(members), n_orf))
+    members = [np.frombuffer(k, dtype=np.int64).reshape(2, -1) for k in counts]   # ORFs, weights' bits
+    indptr = np.r_[0, np.cumsum([m.shape[1] for m in members])].astype(np.int64)
+    indices = np.concatenate([m[0] for m in members]) if members else np.zeros(0, dtype=np.int64)
+    data = np.concatenate([m[1] for m in members]).view(np.float64) if members else np.zeros(0)
+    classes = sp.csr_matrix((data, indices, indptr), shape=(len(members), n_orf))
     return unique, classes, np.array(list(counts.values()), dtype=float)
 
 
@@ -71,7 +79,7 @@ def em(unique, classes, counts, lengths, tol, max_iter):
         w = alpha / lengths / n
         return (unique[unique > 0] * np.log(w[unique > 0])).sum() + (counts * np.log(classes @ w)).sum()
 
-    alpha = unique + classes_t @ (counts / sizes)
+    alpha = unique + (classes_t > 0) @ (counts / sizes)
     ll, steps, change = loglik(alpha), 0, np.inf
     while steps < max_iter:
         a1 = step(alpha)
@@ -106,11 +114,12 @@ def em(unique, classes, counts, lengths, tol, max_iter):
 
 
 def tie_groups(unique, classes):
-    """ORFs that no read tells apart: no unique reads and identical class membership."""
+    """ORFs that no read tells apart: no unique reads, identical class membership and weights."""
     classes_t = classes.T.tocsr()
     groups = {}
     for t in np.flatnonzero((unique == 0) & (np.diff(classes_t.indptr) > 0)):
-        key = classes_t.indices[classes_t.indptr[t]:classes_t.indptr[t + 1]].tobytes()
+        a, b = classes_t.indptr[t], classes_t.indptr[t + 1]
+        key = classes_t.indices[a:b].tobytes() + classes_t.data[a:b].tobytes()
         groups.setdefault(key, []).append(t)
     return [g for g in groups.values() if len(g) > 1]
 
