@@ -16,6 +16,9 @@
     t.textContent = s;
     return t;
   }
+  // Drawing width in SVG units: 720, scaled to the column; on a narrow column (a phone), the column's width in px
+  // (at least 300), so that labels keep their size.
+  const layoutWidth = (box) => (box.clientWidth < 600 ? Math.max(300, Math.round(box.clientWidth)) : 720);
 
   function mulberry32(a) {
     return function () {
@@ -104,62 +107,72 @@
     root.appendChild(controls);
     const slider = controls.querySelector("input");
 
-    const W = 720, panelW = 340, gap = 40, span = 70, ppn = panelW / span;
-    const rowH = 5, top = 50;
-    const rows = Math.max(startReads.length, stopReads.length);
-    const chartTop = top + rows * rowH + 46, chartH = 120;
-    const H = chartTop + chartH + 44;
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img",
+    const svg = el("svg", { role: "img",
                             "aria-label": "Footprints around the start and stop codon, and the score of each offset window" }, root);
     const readout = document.createElement("p");
     readout.className = "rk-readout";
     root.appendChild(readout);
 
+    const span = 70, rowH = 5, top = 50, chartH = 120;
+    const rows = Math.max(startReads.length, stopReads.length), panelH = top + rows * rowH;
     const panels = [
-      { x0: 0, from: CS - 36, reads: startReads, title: "reads spanning the start codon" },
-      { x0: panelW + gap, from: CE - 3 - 34, reads: stopReads, title: "reads spanning the last sense codon" },
+      { from: CS - 36, reads: startReads, title: "reads spanning the start codon" },
+      { from: CE - 3 - 34, reads: stopReads, title: "reads spanning the last sense codon" },
     ];
-    const dyn = [];
-    panels.forEach((p, k) => {
-      const g = el("g", {}, svg);
-      const clip = el("clipPath", { id: `rk-off-clip-${k}` }, g);
-      el("rect", { x: p.x0, y: 0, width: panelW, height: H }, clip);
-      const X = (pos) => p.x0 + (pos - p.from) * ppn;
-      label(g, p.x0 + panelW / 2, 12, p.title, { fill: C.muted });
-      const body = el("g", { "clip-path": `url(#rk-off-clip-${k})` }, g);
-      el("rect", { x: X(0), y: 26, width: (CS - 0) * ppn, height: 4, fill: C.utr }, body);
-      el("rect", { x: X(CE + 3), y: 26, width: (TX_LEN - CE - 3) * ppn, height: 4, fill: C.utr }, body);
-      el("rect", { x: X(CS), y: 22, width: (CE - CS) * ppn, height: 12, fill: C.cds }, body);
-      el("rect", { x: X(CE), y: 22, width: 3 * ppn, height: 12, fill: C.stop }, body);
-      if (k === 0) label(body, X(CS) + 1.5 * ppn, 44, "start", { "font-size": 11, fill: C.muted });
-      else label(body, X(CE) + 1.5 * ppn, 44, "stop", { "font-size": 11, fill: C.stop });
-      const edge = k === 0 ? CS : CE;
-      el("line", { x1: X(edge), x2: X(edge), y1: 20, y2: top + rows * rowH, stroke: "#90a4ae", "stroke-dasharray": "3,3" }, body);
-      p.reads.forEach((r, i) => {
-        const y = top + i * rowH;
-        const bar = el("rect", { x: X(r.pos5), y, width: LEN * ppn, height: rowH - 1, opacity: 0.35 }, body);
-        const ps = el("rect", { y, width: 3 * ppn, height: rowH - 1 }, body);
-        dyn.push({ r, bar, ps, X });
-      });
-    });
+    const chartTitle = ["reads spanning the start or last codon", "whose P-site lands inside the CDS"];
+    let W, dyn, bars;
 
-    // Score chart: support reads whose P-site lands in the CDS, per window centre.
-    const cw = W / CENTRES.length;
-    const yS = (v) => chartTop + chartH - (v / support) * chartH;
-    label(svg, 0, chartTop - 14, "reads spanning the start or last codon whose P-site lands inside the CDS",
-          { "text-anchor": "start", fill: C.muted });
-    el("line", { x1: 0, x2: W, y1: chartTop + chartH, y2: chartTop + chartH, stroke: "#b0bec5" }, svg);
-    el("line", { x1: 0, x2: W, y1: yS(support), y2: yS(support), stroke: "#cfd8dc", "stroke-dasharray": "3,3" }, svg);
-    label(svg, W, yS(support) - 4, `all ${support}`, { "text-anchor": "end", "font-size": 11, fill: C.muted });
-    const bars = CENTRES.map((c, i) => {
-      const b = el("rect", { x: i * cw + 4, width: cw - 8, y: yS(supScores[i]), height: chartTop + chartH - yS(supScores[i]),
-                             rx: 2, style: "cursor:pointer" }, svg);
-      b.addEventListener("click", () => set(c));
-      label(svg, i * cw + cw / 2, chartTop + chartH + 16, String(c), { "font-size": 11, fill: C.muted });
-      return b;
-    });
-    label(svg, best * cw + cw / 2, yS(supScores[best]) - 6, "★", { fill: C.cur, "font-size": 14 });
-    label(svg, W / 2, chartTop + chartH + 36, "window centre c", { fill: C.muted });
+    // Wide: the two panels side by side, the chart title on one line. Narrow: the panels stacked, the title on two.
+    function build() {
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      W = layoutWidth(controls);
+      const narrow = W < 720, panelW = narrow ? W : 340, ppn = panelW / span;
+      const titleLines = narrow ? chartTitle : [chartTitle.join(" ")];
+      const chartTop = (narrow ? 2 * panelH + 16 : panelH) + 32 + 14 * titleLines.length;
+      const H = chartTop + chartH + 44;
+      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      dyn = [];
+      panels.forEach((p, k) => {
+        const g = el("g", { transform: narrow ? `translate(0,${k * (panelH + 16)})` : `translate(${k * (panelW + 40)},0)` }, svg);
+        const clip = el("clipPath", { id: `rk-off-clip-${k}` }, g);
+        el("rect", { x: 0, y: 0, width: panelW, height: panelH }, clip);
+        const X = (pos) => (pos - p.from) * ppn;
+        label(g, panelW / 2, 12, p.title, { fill: C.muted });
+        const body = el("g", { "clip-path": `url(#rk-off-clip-${k})` }, g);
+        el("rect", { x: X(0), y: 26, width: (CS - 0) * ppn, height: 4, fill: C.utr }, body);
+        el("rect", { x: X(CE + 3), y: 26, width: (TX_LEN - CE - 3) * ppn, height: 4, fill: C.utr }, body);
+        el("rect", { x: X(CS), y: 22, width: (CE - CS) * ppn, height: 12, fill: C.cds }, body);
+        el("rect", { x: X(CE), y: 22, width: 3 * ppn, height: 12, fill: C.stop }, body);
+        if (k === 0) label(body, X(CS) + 1.5 * ppn, 44, "start", { "font-size": 11, fill: C.muted });
+        else label(body, X(CE) + 1.5 * ppn, 44, "stop", { "font-size": 11, fill: C.stop });
+        const edge = k === 0 ? CS : CE;
+        el("line", { x1: X(edge), x2: X(edge), y1: 20, y2: panelH, stroke: "#90a4ae", "stroke-dasharray": "3,3" }, body);
+        p.reads.forEach((r, i) => {
+          const y = top + i * rowH;
+          const bar = el("rect", { x: X(r.pos5), y, width: LEN * ppn, height: rowH - 1, opacity: 0.35 }, body);
+          const ps = el("rect", { y, width: 3 * ppn, height: rowH - 1 }, body);
+          dyn.push({ r, bar, ps, X });
+        });
+      });
+
+      // Score chart: support reads whose P-site lands in the CDS, per window centre.
+      const cw = W / CENTRES.length;
+      const yS = (v) => chartTop + chartH - (v / support) * chartH;
+      titleLines.forEach((s, i) =>
+        label(svg, 0, chartTop - 14 * (titleLines.length - i), s, { "text-anchor": "start", fill: C.muted }));
+      el("line", { x1: 0, x2: W, y1: chartTop + chartH, y2: chartTop + chartH, stroke: "#b0bec5" }, svg);
+      el("line", { x1: 0, x2: W, y1: yS(support), y2: yS(support), stroke: "#cfd8dc", "stroke-dasharray": "3,3" }, svg);
+      label(svg, W, yS(support) - 4, `all ${support}`, { "text-anchor": "end", "font-size": 11, fill: C.muted });
+      bars = CENTRES.map((c, i) => {
+        const b = el("rect", { x: i * cw + 4, width: cw - 8, y: yS(supScores[i]), height: chartTop + chartH - yS(supScores[i]),
+                               rx: 2, style: "cursor:pointer" }, svg);
+        b.addEventListener("click", () => set(c));
+        label(svg, i * cw + cw / 2, chartTop + chartH + 16, String(c), { "font-size": 11, fill: C.muted });
+        return b;
+      });
+      label(svg, best * cw + cw / 2, yS(supScores[best]) - 6, "★", { fill: C.cur, "font-size": 14 });
+      label(svg, W / 2, chartTop + chartH + 36, "window centre c", { fill: C.muted });
+    }
 
     function set(c) {
       c = Math.max(CENTRES[0], Math.min(CENTRES[CENTRES.length - 1], c));
@@ -196,7 +209,10 @@
       if (act === "next") set(+slider.value + 1);
       if (act === "best") set(CENTRES[best]);
     });
+    build();
     set(+slider.value);
+    if (typeof ResizeObserver !== "undefined")
+      new ResizeObserver(() => { if (layoutWidth(controls) !== W) { build(); set(+slider.value); } }).observe(root);
   }
 
   if (typeof document$ !== "undefined") document$.subscribe(init);
