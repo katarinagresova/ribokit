@@ -64,8 +64,7 @@ Every position of a transcript that is in no ORF belongs to exactly one
 `<transcript>:leader` (5′ of the annotated CDS), `<transcript>:trailer` (3′ of
 it, its stop codon included), or `<transcript>:transcript` if it has no
 annotated CDS at all. Empty components (no free positions) are left out.
-Outside components carry no frame term — `score`'s [null](#5-the-codon-lead-score)
-is the only place frame bleed from a host CDS is modelled explicitly.
+Outside components carry no frame term ([step 4](#4-em-with-a-frame-term)).
 
 ## 3. Frame-true P-sites and the frame profile
 
