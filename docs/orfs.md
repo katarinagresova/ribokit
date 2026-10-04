@@ -714,6 +714,35 @@ With 2.5 times the libraries, the score called 4.7 times the uORFs, and the
 decoys stayed below the FDR. 91 of the 97 calls of the 6 libraries were also
 calls of the 15; the other 6 had a median `q` of 0.10 there.
 
+### Which read lengths
+
+The frame-0 share per read length (`frames.tsv`), lowest and highest over
+the 6 libraries:
+
+| nt | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| lowest | 0.41 | 0.61 | 0.64 | 0.68 | 0.58 | 0.65 | 0.67 | 0.48 | 0.71 | 0.90 | 0.93 | 0.69 | 0.46 |
+| highest | 0.48 | 0.72 | 0.79 | 0.74 | 0.66 | 0.67 | 0.72 | 0.57 | 0.75 | 0.93 | 0.95 | 0.81 | 0.60 |
+
+27-28 nt hold 59% of the reads in the 15 libraries. More score lengths add
+reads, but not calls (15 libraries):
+
+| Score lengths | uORF reads, median | uORF calls | uoORF calls | Calls lost / new against 27-28 | Decoys at the cut |
+|---|---:|---:|---:|---:|---:|
+| 27-28 | 12 | 310 | 46 | - | 3 |
+| 26-28 | 17 | 305 | 44 | 45 / 38 | 3 |
+| 26-29 | 18 | 317 | 44 | 43 / 48 | 3 |
+| 24-29 | 21 | 319 | 46 | 47 / 56 | 3 |
+| 18-30 | 24 | 306 | 45 | 69 / 64 | 5 |
+| 28 | 6 | 197 | 44 | 129 / 14 | 3 |
+
+The added reads go mostly to codons that already have reads: the median
+number of votes per uORF goes from 4 to 5 at most. And they have a weaker
+frame: in the called uORFs, the median share of leading codons goes from
+0.86 to 0.80. Fewer lengths lose calls: without 27 nt, whose frame is
+weaker in one of the 5 experiments (frame-0 share 0.79-0.81), 129 of the
+356 calls are lost.
+
 ## Determinism
 
 As for `quant`: no random numbers anywhere, ties go to the smallest tie-break,
