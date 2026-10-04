@@ -902,6 +902,20 @@ byte-identical, and `quant`'s outputs on the 6 libraries were the same before
 and after `orfs` and `score` were added. Time and memory: [Typical
 workflow](#typical-workflow).
 
+As in `quant`, inputs that should give the same counts but are not the same
+files can move counts a little, most of all between near-identical ORFs
+or CDSs ([Method, Determinism](method.md#determinism)). On real data:
+
+- Removing some transcripts' alignments from a BAM, which changes the order
+  of the other reads, moved counts by 0.03 reads or less.
+- Taking 6,612 transcripts without reads out of a run moved 9 of 1.28 million
+  rows by more than 0.5 reads. The largest move was 6.9 reads, between three
+  near-identical paralog CDSs; their sum moved by 0.13 reads, and the
+  log-likelihoods agree within 5e-4. `p` in the pooled `scores.tsv` moved by
+  4e-8 or less.
+
+Compare such runs with a tolerance, not byte for byte.
+
 ## References
 
 - Calviello L, Mukherjee N, Wyler E, Zauber H, Hirsekorn A, Selbach M,
