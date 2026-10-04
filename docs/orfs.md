@@ -235,9 +235,9 @@ pass):
 
 U1's uORF, N1's ORF and U5's uoORF are called; the untranslated candidate, the
 CTG start-only peak and U4's uoORF are not. U2's and U3's uoORFs are
-translated, and their `min_p` (the best `q` their 49 codons could reach if
-every vote led) is tiny — 1e-29 and 1e-26 — but their actual `q` is 0.19 and
-0.13: at this depth, with a host CDS that outvotes them, not enough of their
+translated, and their `min_p` (the best `p` their 49 voting codons could reach
+if every one led) is tiny — 1e-29 and 1e-26 — but their actual `p` is 0.12 and
+0.065 (`q` 0.19 and 0.13): at this depth, with a host CDS that outvotes them, not enough of their
 codons actually lead. `min_p` is how ribokit reports that gap between
 "could be called" and "was called", instead of leaving it silent.
 
