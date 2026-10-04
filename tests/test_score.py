@@ -41,18 +41,22 @@ def scored(tmp_path_factory):
 def test_synthetic_calls(scored):
     # check 1: translated ORFs are called; the untranslated candidate, the CUG with a start peak only
     # and U4 (untranslated, but the CDS start peak spills into it) are not. Over seeds 2-11, the
-    # untranslated three had q >= 0.088, the translated ones q <= 0.057
+    # untranslated three had q >= 0.34, U1_uORF and N1_ORF q <= 4.2e-5, U5_uoORF q <= 0.0063. The
+    # uoORFs U2 and U3 are not called reliably (q 4e-4-0.88): their 19 leader codons lead ~2/3 of the
+    # time (synthetic frame-0 share ~0.6), and in the CDS its reads outvote theirs. U5, with 49 leader
+    # codons and twice the reads, is a uoORF the score can call
     q = scored["scores"]["q"]
-    for i in ("U1_uORF", "U2_uoORF", "U3_uoORF", "N1_ORF"):
+    for i in ("U1_uORF", "N1_ORF", "U5_uoORF"):
         assert q[i] < 0.05, i
     for i in ("U1_cand", "U1_CUG", "U4_uoORF"):
         assert q[i] > 0.05, i
     assert scored["scores"].at["U1_CUG", "codons"] == 10       # its start codon, the peak, has no vote
-    # decoys: translated ORFs' are not called; U2 and U4 (frame 1) lose +2, U3 (frame 2) +1: in the CDS's frame
+    # decoys: translated ORFs' are not called; U2, U4 and U5 (frame 1) lose +2, U3 (frame 2) +1: in the CDS's frame
     d = scored["decoys"]
-    assert (d.loc[d["ORF_id"].isin(["U1_uORF", "U2_uoORF", "U3_uoORF", "N1_ORF"]), "p"] > 0.05).all()
-    assert set(zip(d["ORF_id"], d["shift"])).isdisjoint({("U2_uoORF", 2), ("U3_uoORF", 1), ("U4_uoORF", 2)})
-    assert scored["stats"]["decoys_left_out_cds_frame"] == 3
+    assert (d.loc[d["ORF_id"].isin(["U1_uORF", "U2_uoORF", "U3_uoORF", "U5_uoORF", "N1_ORF"]), "p"] > 0.05).all()
+    assert set(zip(d["ORF_id"], d["shift"])).isdisjoint({("U2_uoORF", 2), ("U3_uoORF", 1), ("U4_uoORF", 2),
+                                                         ("U5_uoORF", 2)})
+    assert scored["stats"]["decoys_left_out_cds_frame"] == 4
 
 
 def test_pooled_and_deterministic(scored):
@@ -65,6 +69,20 @@ def test_pooled_and_deterministic(scored):
     twice = twice.set_index("ORF_id")
     assert (twice["reads"] == 2 * scored["scores"]["reads"]).all()
     assert (twice["leads"] == scored["scores"]["leads"]).all()
+
+
+def test_one_vote_per_codon():
+    # a codon's reads clump on real data, so outside a CDS a codon leads with P = 1/3 however many
+    # reads it has: 2 reads in frame 0 do not count as P = 1/9, as independent reads would
+    o = pd.DataFrame({"ORF_id": ["T:CDS", "T_u"], "Name": "T", "type": ["CDS", "uORF"], "start": [90, 0],
+                      "end": [390, 30], "Length": [300, 30], "NumReads": [1000.0, 20.0]})
+    frames = pd.DataFrame({"length": [28], "offset": [12], "reads": [1000.0], "frame0": [0.9], "frame1": [0.05],
+                           "frame2": [0.05]})
+    codons = pd.DataFrame([(j, 2, 0, 0) for j in range(1, 10)], columns=["codon", "frame0", "frame1", "frame2"]).assign(
+        ORF_id="T_u", length=28)
+    s, _, _ = score.score([(codons, o, frames)], [28])
+    assert s.at[0, "leads"] == 9 and s.at[0, "expected"] == pytest.approx(3)
+    assert s.at[0, "p"] == pytest.approx(3.0 ** -9) and s.at[0, "min_p"] == pytest.approx(3.0 ** -9)
 
 
 def test_null_follows_host_cds():

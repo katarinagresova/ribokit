@@ -204,7 +204,7 @@ def make_dataset(directory, seed=1):
 # Reads per source: a CDS or ORF (P-sites on its codons, frames from PLANTED), or background
 # (BACKGROUND reads per nt, uniform over the positions in no ORF).
 ORF_READS = {"U1:CDS": 6000, "U1_uORF": 400, "U2_main": 2000, "U2_uoORF": 300, "U3:CDS": 2000, "U3_uoORF": 300,
-             "U4:CDS": 2000, "N1_ORF": 300}
+             "U4:CDS": 2000, "U5:CDS": 2000, "U5_uoORF": 600, "N1_ORF": 300}
 # reads with their P-site on the start codon: U1_CUG has no others, U4's CDS has a start peak whose
 # reads 1-2 nt long at the 5' end put their P-site in U4_uoORF's leader part (untranslated)
 PEAKS = {"U1_CUG": 150, "U4:CDS": 150}
@@ -227,13 +227,13 @@ def build_orf_transcripts(rng):
     orfs["U1:CDS"] = ("U1", len(seq), len(seq) + 450)
     seq += "ATG" + codons(149) + stop() + rand(120)
     txs["U1"] = seq
-    # U2, U3, U4: a uoORF in frame 1 / 2 / 1 of the CDS, from 60 nt upstream of it to 90 nt into
-    # it. Its stop spans CDS codons 30 and 31.
-    for name, f in (("U2", 1), ("U3", 2), ("U4", 1)):
-        cs = 150
+    # U2, U3, U4, U5: a uoORF in frame 1 / 2 / 1 / 1 of the CDS, from 60 nt (U5: 150 nt) upstream of
+    # it to 90 nt into it. Its stop spans CDS codons 30 and 31.
+    for name, f, up in (("U2", 1, 60), ("U3", 2, 60), ("U4", 1, 60), ("U5", 1, 150)):
+        cs = up + 90
         cds = ["ATG"] + list(rng.choice(SENSE, 149))
         cds[30], cds[31] = ("CTA", "AAA") if f == 1 else ("CCT", "AAA")
-        s, e = cs - 60 + f, cs + 90 + f
+        s, e = cs - up + f, cs + 90 + f
         txs[name] = rand(s) + "ATG" + rand(cs - s - 3) + "".join(cds) + stop() + rand(100)
         orfs[f"{name}_uoORF"] = (name, s, e)
         orfs["U2_main" if name == "U2" else f"{name}:CDS"] = (name, cs, cs + 450)
@@ -245,7 +245,7 @@ def build_orf_transcripts(rng):
     txs["N1"] = rand(100) + "ATG" + codons(25) + stop() + rand(150)
     for name, s, e in orfs.values():
         assert (e - s) % 3 == 0 and txs[name][e:e + 3] in STOPS
-    cds = {"U1": "U1:CDS", "U2": "U2_main", "U3": "U3:CDS", "U4": "U4:CDS"}
+    cds = {"U1": "U1:CDS", "U2": "U2_main", "U3": "U3:CDS", "U4": "U4:CDS", "U5": "U5:CDS"}
     return {name: dict(seq=seq, cds_start=orfs[cds[name]][1] if name in cds else None,
                        cds_end=orfs[cds[name]][2] if name in cds else None) for name, seq in txs.items()}, orfs
 

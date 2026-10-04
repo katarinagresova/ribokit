@@ -83,16 +83,16 @@ def test_orf_table(orf_run, orf_data):
     t, s = orf_run["table"], orf_run["stats"]
     assert (s["orfs_dropped_transcript_not_in_gtf"], s["orfs_dropped_not_multiple_of_3"],
             s["orfs_dropped_off_transcript"], s["orfs_dropped_no_stop"]) == (1, 1, 1, 1)
-    assert s["orfs_cds_added"] == 3            # U1, U3 and U4; U2's is listed as U2_main
+    assert s["orfs_cds_added"] == 4            # U1, U3, U4 and U5; U2's is listed as U2_main
     orf_types = {"U1_uORF": "uORF", "U1_cand": "uORF", "U1_CUG": "uORF", "U2_uoORF": "uoORF", "U3_uoORF": "uoORF",
-                 "U4_uoORF": "uoORF", "U1:CDS": "CDS", "U2_main": "CDS", "U3:CDS": "CDS", "U4:CDS": "CDS",
-                 "N1_ORF": "other"}
+                 "U4_uoORF": "uoORF", "U5_uoORF": "uoORF", "U1:CDS": "CDS", "U2_main": "CDS", "U3:CDS": "CDS",
+                 "U4:CDS": "CDS", "U5:CDS": "CDS", "N1_ORF": "other"}
     assert t.loc[t["type"].isin(orfs.ORF_TYPES), "type"].to_dict() == orf_types
     assert t.at["U1_CUG", "start_codon"] == "CTG"
     for i, (name, start, end) in orf_data["orf_coords"].items():
         assert tuple(t.loc[i, ["Name", "start", "end"]]) == (name, start, end)
     outside = {"U1:leader", "U1:trailer", "U2:leader", "U2:trailer", "U3:leader", "U3:trailer", "U4:leader",
-               "U4:trailer", "P1:transcript", "N1:transcript", "unannotated:transcript"}
+               "U4:trailer", "U5:leader", "U5:trailer", "P1:transcript", "N1:transcript", "unannotated:transcript"}
     assert set(t.index[~t["type"].isin(orfs.ORF_TYPES)]) == outside
     # a leader's positions are those in no ORF: U1's 277 nt hold uORFs of 63, 48 and 33 nt
     assert t.at["U1:leader", "Length"] == 277 - 63 - 48 - 33
@@ -133,13 +133,16 @@ def test_codons_from_psites(orf_run):
     got = pd.read_csv(f"{orf_run['prefix']}.codons.tsv", sep="\t")
     key = ["ORF_id", "codon", "length"]
     assert got.sort_values(key).reset_index(drop=True).equals(expected.sort_values(key).reset_index(drop=True))
-    assert set(got["ORF_id"]) == set(t.index[t["type"].isin(orfs.ORF_TYPES[1:])]) - {"U1_cand"}
+    # U1_cand is untranslated, with no background under it; only its stop codon, in the leader, can have reads
+    cand = got["ORF_id"] == "U1_cand"
+    assert set(got.loc[~cand, "ORF_id"]) == set(t.index[t["type"].isin(orfs.ORF_TYPES[1:])]) - {"U1_cand"}
+    assert (got.loc[cand, "codon"] == (t.at["U1_cand", "end"] - t.at["U1_cand", "start"]) // 3).all()
 
 
 def test_frame_term_returns_overlap_reads_to_cds(orf_run, orf_data, tmp_path, monkeypatch):
     # U4_uoORF is untranslated, but its leader part holds the CDS start peak's reads that are 1-2 nt
     # long at the 5' end, so the EM takes it for translated. Split by density alone, the overlap
-    # gives it ~90 reads; the frame term returns >= 15 of them to the CDS (21-35 over 10 seeds).
+    # gives it ~90 reads; the frame term returns >= 15 of them to the CDS (23-45 over seeds 2-11).
     # It keeps ~60: CDS reads in frame 1 are in its frame 0.
     monkeypatch.setattr(orfs, "frame_weights", lambda frames: np.ones((len(frames), 3)))
     t, *_ = orfs.run(str(orf_data["bam"]), str(orf_data["gtf"]), str(orf_data["fasta"]), WINDOW,

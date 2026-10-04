@@ -4,11 +4,14 @@ Votes. Every codon of an ORF but its start codon votes, from the P-sites of the 
 3 nt (codons.tsv, summed over libraries; each alignment counts 1). It leads when more of them are in
 the ORF's frame than in either other frame. A peak is one codon, so one vote at most.
 
-Null: the ORF is not translated. A codon's reads are then multinomial over its 3 positions, each
-position weighted by its expected reads from the EM: the ORF's own density as background, which has
-no frame, plus, inside the host CDS, the CDS's density x 3 pi_l(the position's frame in the CDS).
-p_i = P(lead) under it, exact for the codon's read count. Across lengths and libraries the frame
-probabilities are mixed by their reads in the codon. leads ~ Poisson-binomial(p_i):
+Null: the ORF is not translated. Each of a codon's 3 positions is weighted by its expected reads from
+the EM: the ORF's own density as background, which has no frame, plus, inside the host CDS, the CDS's
+density x 3 pi_l(the position's frame in the CDS). This gives the frame probabilities q; across lengths
+and libraries they are mixed by their reads in the codon. A codon's reads clump: two reads of a codon
+share a nucleotide far more often than independent reads would. So p_i = P(lead) is the larger of the
+two extremes, all reads in one clump (q0) and independent reads (multinomial, exact for the codon's
+read count). Outside the CDS that is 1/3: with exchangeable frames, no clumping makes a lead more
+likely. leads ~ Poisson-binomial(p_i):
 z = (leads - sum p_i) / sqrt(sum p_i (1 - p_i)), p = its upper tail, q = BH over the ORFs scored.
 min_p is the p if every codon with reads led: how far the ORF's length and reads let it go.
 
@@ -117,7 +120,7 @@ def score(libraries, lengths):
     reads = c.sum(axis=1)
     per_codon["reads"] = reads
     per_codon["lead"] = c[:, 0] > c[:, 1:].max(axis=1)
-    per_codon["p_lead"] = [lead_probability(int(round(x)), y / x) for x, y in zip(reads, q)]
+    per_codon["p_lead"] = [max(y[0] / x, lead_probability(int(round(x)), y / x)) for x, y in zip(reads, q)]
 
     def summary(g):
         p = g["p_lead"].to_numpy()
