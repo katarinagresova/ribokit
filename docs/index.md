@@ -26,6 +26,9 @@ simulation alone.
   quantification work, with interactive examples.
 - **[Method: ORF counting](orfs.md)**: ORF types, outside components, the
   frame-weighted EM, and the codon lead score.
+- **Using `orfs` and `score`**: a [typical workflow](orfs.md#typical-workflow)
+  for two conditions, [how to read the scores](orfs.md#reading-the-results),
+  and [what they give on real data](orfs.md#validation-on-real-data).
 
 ## Status
 
