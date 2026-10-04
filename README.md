@@ -56,6 +56,11 @@ ribokit score --orfs-prefix out/sample_rep1 out/sample_rep2 --out-prefix out/poo
 `start` = first nt of the start codon, `end` = one past the last sense codon,
 same convention as the CDS). The annotated CDSs are added automatically.
 
+To compare conditions, give every library the same GTF, ORF table and
+offsets table, and score all libraries together:
+[Typical workflow](docs/orfs.md#typical-workflow). What the scores do and do
+not say: [Reading the results](docs/orfs.md#reading-the-results).
+
 | Output | Content |
 |---|---|
 | `<prefix>.orfs.tsv` | `ORF_id Name type start end start_codon Length NumReads`, one row per ORF (from `--orfs`, plus the annotated CDSs) and per outside component (`<tx>:leader`, `<tx>:trailer`, `<tx>:transcript`: the positions in no ORF). `type` is `CDS`, `uORF` (ends at or before the CDS start), `uoORF` (starts upstream of the CDS, out of frame with it) or `other`. |
