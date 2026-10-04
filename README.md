@@ -10,7 +10,7 @@ estimation and CDS quantification from transcriptome alignments
 ```bash
 mamba env create -p .env -f environment.yml
 .env/bin/pip install --no-deps -e .
-.env/bin/python -m pytest          # 26 tests on synthetic data with known truth
+.env/bin/python -m pytest          # 27 tests on synthetic data with known truth
 ```
 
 ## Use
