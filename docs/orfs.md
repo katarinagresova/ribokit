@@ -378,13 +378,14 @@ groups:
 | not called | `p` above the p cut, `min_p` at or below it | The ORF had enough votes to pass, but too few of them led. |
 | cannot be called | `min_p` above the p cut | Too few codons with reads: the ORF would not pass even if every one led. |
 
-**"Not called" does not mean "not translated".** Translated codons lead
-nearly every time they have reads: 0.89-0.96 of them in CDS windows downsampled
-to uORF depth (real data, 6 human libraries). What limits the calls is how many
-codons have reads. With a median of 2 score-length reads per uORF, 1,472 of a
-catalogue of 1,683 uORFs (87%) could not be called in those 6 libraries; with a
-median of 12, in a pool of 15 libraries, 967 (57%). Report all three groups,
-not "called" against the rest.
+**"Not called" does not mean "not translated".** Translated codons lead nearly
+every time they have reads: 0.89-0.96 of them in CDS windows downsampled to
+uORF depth ([Power at uORF depth](#power-at-uorf-depth)). What limits the calls
+is how many codons have reads. With a median of 2 score-length reads per uORF,
+1,472 of a catalogue of 1,683 uORFs (87%) could not be called in those 6
+libraries; with a median of 12, in a pool of 15 libraries, 967 (57%) ([Calls
+and depth](#calls-and-depth)). Report all three groups, not "called" against
+the rest.
 
 **The best `p` an ORF can reach.** Outside a CDS overlap every vote has
 $p_i = 1/3$, so `min_p` is $3^{-k}$ for $k$ codons with reads. An ORF has at
@@ -394,11 +395,12 @@ most `codons` votes, one fewer than its codons:
 |---|---:|---:|---:|---:|---:|
 | `min_p` | 0.037 | 0.012 | 0.0041 | 0.0014 | 5.1e-5 |
 
-At q < 0.05, the p cut was 0.0026 in the 6 libraries and 0.0092 in the 15:
-6 and 5 votes, all leading. An ORF of 5 codons or fewer could not be called in
+At q < 0.05, the p cut was 0.0026 in the 6 libraries and 0.0092 in the 15: 6
+and 5 votes, all leading. An ORF of 5 codons or fewer could not be called in
 either, however deep the libraries. Reads clump, so $n$ reads cover fewer than
-$n$ codons: in 15-codon CDS windows, 20 reads covered a median of 7 codons.
-Inside a CDS overlap $q_0$ is not 1/3, and `min_p` is higher or lower.
+$n$ codons: in 15-codon CDS windows, 20 reads covered a median of 7 codons
+([Power at uORF depth](#power-at-uorf-depth)). Inside a CDS overlap $q_0$ is
+not 1/3, and `min_p` is higher or lower.
 
 **A call is about the frame, not the start.** It says that ribosomes elongate
 in the ORF's frame over its voting codons, not where they start
@@ -423,12 +425,14 @@ frame of a codon can lead, a translated ORF takes it, and its shifted copies
 seldom lead. Thus the empirical FDR is conservative when many ORFs are
 translated, and the decoys of the ORFs not called make the better null set. At
 q < 0.05: 0 of 3,425 decoys passed the cut in the 6 libraries, 3 of 3,425 in
-the 15 (empirical FDR 0.004).
+the 15 (empirical FDR 0.004; [Is the null
+calibrated?](#is-the-null-calibrated)).
 
 **Pooling.** `score` sums the libraries before it scores them. A pool gives
 more codons with reads, up to the ORF's `codons`, and a translated codon with
 more reads leads more often, but no pool gives an ORF more votes than it has
-codons. With 15 libraries instead of 6, uORF calls went from 66 to 310.
+codons. With 15 libraries instead of 6, uORF calls went from 66 to 310
+([Calls and depth](#calls-and-depth)).
 
 ## Typical workflow
 
@@ -473,11 +477,11 @@ ribokit score --orfs-prefix out/ctrl_{1,2,3} out/treat_{1,2,3} --out-prefix out/
    ([Reading the results](#reading-the-results)).
 4. **Counts for the tests.** `NumReads` in each library's `orfs.tsv` are the
    counts for a differential test between conditions, e.g. of a uORF's reads
-   relative to its CDS's. They count every read length in `--read-lengths`
-   that has an offset, not only the score lengths. `scores.tsv` sorts the
-   ORFs into called, not called and cannot be called
-   ([Reading the results](#reading-the-results));
-   sum nested ORFs first ([Known limits](#known-limits)).
+   relative to its CDS's. They count every read length in `--read-lengths` that
+   has an offset, not only the score lengths. `scores.tsv` sorts the ORFs into
+   called, not called and cannot be called ([Reading the
+   results](#reading-the-results)); sum nested ORFs first ([Known
+   limits](#known-limits)).
 5. **CDS counts.** `orfs.tsv` has the annotated CDSs too, but by design their
    counts differ a little from `quant`'s: outside components and the frame
    term move some reads between a CDS and the components around it. In 6
@@ -501,7 +505,8 @@ and `score` 10-25 s and 0.2-0.3 GB for 6-15 libraries.
   report it as one unit. In a real catalogue of 1,741 ORFs from an ORF caller,
   310 ORFs are in 148 such groups; against a count that gives the shared reads
   to every ORF of a group, the nested uORFs kept 0.53 of their reads, the
-  other uORFs 0.94.
+  other uORFs 0.94
+  ([What each counting rule changes](#what-each-counting-rule-changes)).
 - **A CDS start peak spills into an overlapping uoORF.** Reads of the CDS's
   start-codon peak that put their P-site 1-2 nt upstream of the start codon
   land in the uoORF's part upstream of the CDS, where the uoORF is the only
@@ -514,8 +519,9 @@ and `score` 10-25 s and 0.2-0.3 GB for 6-15 libraries.
   CDSs differ in how many of their reads fall in their off-frames. This
   concerns uoORFs and other ORFs inside a CDS, at small `p`. On real data, in
   10-codon windows in the off-frames of CDSs, p ≤ 0.001 came up 5-6x as often
-  as expected (p ≤ 0.05: 1.3-1.4x). Each CDS's own frame profile would halve
-  the excess at p ≤ 0.001; part of the rest can be translation in the
+  as expected (p ≤ 0.05: 1.3-1.4x; [Is the null
+  calibrated?](#is-the-null-calibrated)). Each CDS's own frame profile would
+  halve the excess at p ≤ 0.001; part of the rest can be translation in the
   off-frames.
 - **uoORFs that stop after the CDS stop.** A uoORF starts upstream of the CDS,
   out of frame, and ends in the CDS or after it
@@ -687,13 +693,13 @@ about 20 codons and 40 reads, or 15 codons and 80. At every size and depth,
 codons with reads: 20 reads cover a median of 7 of 15 codons, and 6 votes
 that all lead are needed.
 
-Applied to the catalogue, a uORF's **power** is the share of CDS windows
-with its codons and reads that are called. 1,472 of the 1,683 uORFs cannot
-be called at all (`min_p` above the cut), and if every uORF were translated
-as CDSs are, 203 calls would be expected; 66 were made. Of the 100 uORFs
-with a power of at least 0.8, 45 were called. The 55 others had
-fewer leading codons (a median of 0.60 of the codons with reads, against
-0.87) and a lower in-frame share (0.74 against 0.86).
+Applied to the catalogue, a uORF's **power** is the share of CDS windows with
+its codons and reads that are called. 1,472 of the 1,683 uORFs cannot be called
+at all (`min_p` above the cut), and if every uORF were translated as CDSs are,
+203 calls would be expected; 66 were made. Of the 100 uORFs with a power of at
+least 0.8, 45 were called. The 55 others had fewer leading codons (a median of
+0.60 of the codons with reads, against 0.87) and a lower in-frame share (0.74
+against 0.86).
 
 ### Calls and depth
 
@@ -764,8 +770,8 @@ often (15-library calls, one condition):
 | called | 248 | 168 (68%) | 130 (52%) |
 | not called | 243 | 171 (70%) | 122 (50%) |
 
-Over all uORFs, start peaks were nearly as frequent as at annotated CDS
-starts of the same depth. So most catalogue uORFs start as CDSs do, and about half of
+Over all uORFs, start peaks were nearly as frequent as at annotated CDS starts
+of the same depth. So most catalogue uORFs start as CDSs do, and about half of
 those that start and have power have no frame that the score accepts. A call
 says that ribosomes elongate in the ORF's frame, not that they start at its
 start codon ([Background](#background)).
@@ -822,10 +828,11 @@ step, toward `orfs`. Totals over the 6 libraries, relative to the span count:
 
 As for `quant`: no random numbers anywhere, ties go to the smallest tie-break,
 and a rerun — of `orfs` or of `score` — gives byte-identical output. Pooling a
-library with itself in `score` doubles `reads` and leaves `leads` unchanged.
-On real data, a rerun of `orfs` (one library) and of `score` (the 6
-libraries) was byte-identical, and `quant`'s outputs on the 6 libraries were
-the same before and after `orfs` and `score` were added. Time and memory: [Typical workflow](#typical-workflow).
+library with itself in `score` doubles `reads` and leaves `leads` unchanged. On
+real data, a rerun of `orfs` (one library) and of `score` (the 6 libraries) was
+byte-identical, and `quant`'s outputs on the 6 libraries were the same before
+and after `orfs` and `score` were added. Time and memory: [Typical
+workflow](#typical-workflow).
 
 ## References
 
