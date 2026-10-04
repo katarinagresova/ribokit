@@ -12,11 +12,11 @@ by a ribosome reading it.
 
 ```mermaid
 flowchart TB
-    orftab[/"ORF table (--orfs) + annotated CDSs"/] --> comps["1 · ORF types & outside components"]
-    gtf[/"GTF + genome FASTA"/] --> comps
-    bam[/"transcriptome BAM"/] --> reads["2 · Reads: 5′ end and footprint length"]
-    reads --> off["3 · Frame-true P-sites: one offset per length"]
-    comps --> off
+    orftab[/"ORF table (--orfs) + annotated CDSs"/] --> types["1 · ORF table: checks and types"]
+    gtf[/"GTF + genome FASTA"/] --> types
+    types --> comps["2 · Outside components"]
+    bam[/"transcriptome BAM"/] --> off["3 · Frame-true P-sites: one offset per length"]
+    types --> off
     off --> profile["frame profile per length"]
     profile --> em["4 · EM with a frame term"]
     comps --> em
