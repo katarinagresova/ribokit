@@ -5,7 +5,8 @@ repo_url: https://github.com/katarinagresova/ribokit
 docs_dir: docs
 nav:
   - Home: index.md
-  - Method: method.md
+  - "Method: quant": method.md
+  - "Method: ORF counting": orfs.md
 theme:
   name: material
 markdown_extensions:

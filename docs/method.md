@@ -14,6 +14,9 @@ questions:
    CDS's density of ribosomes, accelerated so that near-identical CDSs don't
    take forever to split ([step 6](#6-em)).
 
+This page covers `ribokit quant`. For uORFs and other ORFs besides the CDS,
+see [ORF counting and frame scores](orfs.md) (`ribokit orfs` / `ribokit score`).
+
 ## At a glance
 
 ```mermaid
