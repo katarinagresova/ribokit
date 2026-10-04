@@ -369,10 +369,11 @@ whose reads follow the CDS's frame. The same settings give the same draw;
 <div class="rk-widget" id="score-explorer"><noscript>This interactive example needs JavaScript.</noscript></div>
 
 *Things to try:* with the defaults (15 voting codons, 20 reads in clumps of
-2), about 7 codons get reads, as in real data at that depth, and even when
-most of them lead `p` seldom reaches the cut; *new draw* shows the spread.
-Tick *null: independent reads*: the same reads give a much smaller `p`,
-because that null takes a clump in one frame for a rare event. Untick
+2), about 7 codons get reads, as in real data at that depth, and `p`
+reaches the cut in about half the draws, as real windows of that size and
+depth do ([Power at uORF depth](#power-at-uorf-depth)); *new draw* shows the
+spread. Tick *null: independent reads*: the same reads give a much smaller
+`p`, because that null takes a clump in one frame for a rare event. Untick
 *translated*: about a third of the votes lead. Set 5 voting codons: `min_p`
 is $3^{-5} = 0.0041$ at any depth. Put 15 codons inside a host CDS: its reads
 fall in the ORF's off-frames, and there the null expects fewer leads.
