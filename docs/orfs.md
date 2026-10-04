@@ -8,6 +8,78 @@ also have to decide *whether* a read's reading frame agrees with the ORF it
 sits on, since a footprint can overlap an ORF's span without ever being made
 by a ribosome reading it.
 
+## Background
+
+**uORFs and uoORFs.** An upstream ORF (uORF) starts in a transcript's 5′
+leader; about half of human and mouse transcripts have at least one
+([Calvo et al. 2009](#references)). Ribosomes scan the leader from the 5′ end
+and start at the first suitable start codon, so a ribosome that translates a
+uORF reaches the CDS only if it resumes scanning after the uORF's stop and
+starts again (reinitiates). Many do not, and uORF translation usually
+represses the CDS ([Calvo et al. 2009; Johnstone et al. 2016; Hinnebusch et
+al. 2016](#references)). A uORF that ends inside the CDS, out of frame with it
+— an upstream overlapping ORF, or **uoORF** — goes further: its ribosomes pass
+the CDS start codon, so they cannot start the CDS. ATF4 shows how cells use
+this. Ribosomes that leave its short uORF1 normally reinitiate at uORF2, a
+uoORF, and miss the ATF4 start; under stress, phosphorylation of eIF2 delays
+reinitiation, and ribosomes scan past uORF2's start to reinitiate at the CDS
+([Vattem and Wek 2004](#references)). The share of ribosomes on a uORF, against
+its CDS, is thus a quantity of interest in its own right, and it can change
+between conditions.
+
+**Start codons and other ORFs.** Many uORFs start on a near-cognate codon —
+CUG, GUG or UUG — rather than AUG ([Ingolia et al. 2009, 2011](#references)),
+so ribokit takes start codons as given and does not check them. Besides
+uORFs and uoORFs, a catalogue can hold ORFs on transcripts with no annotated
+CDS, ORFs downstream of or inside the CDS, and in-frame N-terminal extensions
+of it; ribokit types all of these `other` ([step 1](#1-the-orf-table)).
+
+**Ribo-seq and the reading frame.** Ribosome profiling (Ribo-seq) sequences
+the stretch of mRNA, about 30 nt, that each ribosome protects from nuclease:
+its footprint ([Ingolia et al. 2009](#references)). A footprint's P-site, found
+from its 5′ end and a length-dependent offset
+([Method, step 3](method.md#3-p-site-offsets)), is the first nt of the codon
+the ribosome is reading, and a translating ribosome moves one codon, 3 nt, at
+a time. Thus the P-sites of a translated ORF fall in that ORF's frame, codon
+after codon: a 3-nt periodicity, which is the signal that ORF callers test
+([Calviello et al. 2016; Erhard et al. 2018; Xiao et al. 2018](#references)).
+
+**Reads in an ORF's span are not enough.** Not every footprint inside a short
+ORF comes from a ribosome translating it. Ribosomes that start or pause at one
+codon without going on make a peak; an ORF that overlaps a CDS collects the
+CDS's footprints, mostly in the CDS's frame; and the leader carries a
+background of reads with no frame. Only P-sites in the ORF's own frame, over
+many of its codons, show that ribosomes elongate through it.
+
+<figure markdown="span">
+  ![Three tracks of P-sites per nt on the same ORF: in-frame P-sites codon after codon; one tall peak at the start codon and scattered reads after it; scattered reads with no frame](img/frame_signal.svg)
+  <figcaption>P-sites per nt on one ORF (made-up counts). <b>Translated</b>: P-sites on the
+  first nt of codon after codon — the ORF's frame. <b>A peak, no elongation</b>: ribosomes
+  start or stall on one codon and do not go on in this frame. <b>Background</b>: reads with no
+  frame. A count of the reads in the span cannot tell these apart; the frame can.</figcaption>
+</figure>
+
+A real case, from libraries of a human cell line: one CUG in GAPDH's leader
+holds as many P-sites as GAPDH's AUG start codon, so a span count makes the
+ORF that starts at this CUG look well translated. But only 1-2% of the reads
+after the CUG are in that ORF's frame — the rest follow GAPDH's CDS, which the
+ORF overlaps — and harringtonine, which holds ribosomes at start codons
+([Ingolia et al. 2011](#references)), raises the AUG peak but not the CUG's:
+with it, the AUG has 11-19x the CUG's P-sites, without it about as many.
+
+**What ribokit does and does not do.** ribokit does not find ORFs. It takes a
+catalogue (`--orfs`) — from an ORF caller such as RiboTaper
+([Calviello et al. 2016](#references)), PRICE
+([Erhard et al. 2018](#references)), RiboCode ([Xiao et al. 2018](#references)),
+ORFquant ([Calviello et al. 2020](#references)) or RiboTIE
+([Clauwaert et al. 2025](#references)), or from a scan for start codons — and
+for every ORF in it counts the reads with their frame (`orfs`) and scores the
+frame evidence, pooled over libraries (`score`). It does not test where
+ribosomes start: start sites need Ribo-seq with an initiation inhibitor, such
+as harringtonine ([Ingolia et al. 2011](#references)) or lactimidomycin
+([Lee et al. 2012](#references)), which ribokit does not use. A call says that
+ribosomes elongate in the ORF's frame, not that they start at its start codon.
+
 ## At a glance
 
 ```mermaid
@@ -289,3 +361,52 @@ codons actually lead. `min_p` is how ribokit reports that gap between
 As for `quant`: no random numbers anywhere, ties go to the smallest tie-break,
 and a rerun — of `orfs` or of `score` — gives byte-identical output. Pooling a
 library with itself in `score` doubles `reads` and leaves `leads` unchanged.
+
+## References
+
+- Calviello L, Mukherjee N, Wyler E, Zauber H, Hirsekorn A, Selbach M,
+  Landthaler M, Obermayer B, Ohler U (2016). Detecting actively translated open
+  reading frames in ribosome profiling data. *Nature Methods* 13(2):165-170.
+  [doi:10.1038/nmeth.3688](https://doi.org/10.1038/nmeth.3688)
+- Calviello L, Hirsekorn A, Ohler U (2020). Quantification of translation
+  uncovers the functions of the alternative transcriptome. *Nature Structural &
+  Molecular Biology* 27(8):717-725.
+  [doi:10.1038/s41594-020-0450-4](https://doi.org/10.1038/s41594-020-0450-4)
+- Calvo SE, Pagliarini DJ, Mootha VK (2009). Upstream open reading frames cause
+  widespread reduction of protein expression and are polymorphic among humans.
+  *PNAS* 106(18):7507-7512.
+  [doi:10.1073/pnas.0810916106](https://doi.org/10.1073/pnas.0810916106)
+- Clauwaert J, McVey Z, Gupta R, Yannuzzi I, Basrur V, Nesvizhskii AI,
+  Menschaert G, Prensner JR (2025). Deep learning to decode sites of RNA
+  translation in normal and cancerous tissues. *Nature Communications*
+  16:1275.
+  [doi:10.1038/s41467-025-56543-0](https://doi.org/10.1038/s41467-025-56543-0)
+- Erhard F, Halenius A, Zimmermann C, L'Hernault A, Kowalewski DJ, Weekes MP,
+  Stevanovic S, Zimmer R, Dölken L (2018). Improved Ribo-seq enables
+  identification of cryptic translation events. *Nature Methods*
+  15(5):363-366. [doi:10.1038/nmeth.4631](https://doi.org/10.1038/nmeth.4631)
+- Hinnebusch AG, Ivanov IP, Sonenberg N (2016). Translational control by
+  5′-untranslated regions of eukaryotic mRNAs. *Science* 352(6292):1413-1416.
+  [doi:10.1126/science.aad9868](https://doi.org/10.1126/science.aad9868)
+- Ingolia NT, Ghaemmaghami S, Newman JRS, Weissman JS (2009). Genome-wide
+  analysis in vivo of translation with nucleotide resolution using ribosome
+  profiling. *Science* 324(5924):218-223.
+  [doi:10.1126/science.1168978](https://doi.org/10.1126/science.1168978)
+- Ingolia NT, Lareau LF, Weissman JS (2011). Ribosome profiling of mouse
+  embryonic stem cells reveals the complexity and dynamics of mammalian
+  proteomes. *Cell* 147(4):789-802.
+  [doi:10.1016/j.cell.2011.10.002](https://doi.org/10.1016/j.cell.2011.10.002)
+- Johnstone TG, Bazzini AA, Giraldez AJ (2016). Upstream ORFs are prevalent
+  translational repressors in vertebrates. *EMBO Journal* 35(7):706-723.
+  [doi:10.15252/embj.201592759](https://doi.org/10.15252/embj.201592759)
+- Lee S, Liu B, Lee S, Huang SX, Shen B, Qian SB (2012). Global mapping of
+  translation initiation sites in mammalian cells at single-nucleotide
+  resolution. *PNAS* 109(37):E2424-E2432.
+  [doi:10.1073/pnas.1207846109](https://doi.org/10.1073/pnas.1207846109)
+- Vattem KM, Wek RC (2004). Reinitiation involving upstream ORFs regulates ATF4
+  mRNA translation in mammalian cells. *PNAS* 101(31):11269-11274.
+  [doi:10.1073/pnas.0400541101](https://doi.org/10.1073/pnas.0400541101)
+- Xiao Z, Huang R, Xing X, Chen Y, Deng H, Yang X (2018). De novo annotation and
+  characterization of the translatome with ribosome profiling data. *Nucleic
+  Acids Research* 46(10):e61.
+  [doi:10.1093/nar/gky179](https://doi.org/10.1093/nar/gky179)
