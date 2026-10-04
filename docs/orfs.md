@@ -624,6 +624,44 @@ are not shipped with ribokit; the numbers come from its validation runs.
   median length of 30 nt. Added to it: the ORF that starts at GAPDH's CUG
   ([Background](#background)), a uoORF, so 59 uoORFs in all.
 
+### Is the null calibrated?
+
+Windows of 10 codons where no catalogue ORF is, scored as an ORF there would
+be (6 libraries pooled, score lengths): in leaders, in trailers, and in the
+two off-frames of CDSs. Observed / expected windows at two `p` cuts (for
+leaders and trailers, the range over the three frames of a window), for
+a null that takes a codon's reads as independent (multinomial) and for one
+vote per codon ([step 5](#5-the-codon-lead-score)):
+
+| Windows | Null | p ≤ 0.05 | p ≤ 0.001 |
+|---|---|---:|---:|
+| leaders | multinomial | 505-600 / 112-113 | 24-56 / 0.2 |
+| | one vote | 312-353 / 101-104 | 12-26 / 0.1 |
+| trailers | multinomial | 342-780 / 92-95 | 49-148 / 0.3 |
+| | one vote | 215-599 / 89-90 | 20-57 / 0.1 |
+| CDS frame +1 | multinomial | 20,119 / 3,923 | 3,117 / 59 |
+| | one vote | 7,736 / 5,518 | 350 / 66 |
+| CDS frame +2 | multinomial | 17,041 / 7,918 | 1,467 / 79 |
+| | one vote | 9,272 / 6,962 | 473 / 79 |
+
+One vote per codon removes much of the excess, but not all of it. Leaders
+and trailers are not clean null sets: they hold translated ORFs that are not
+in the catalogue, and trailers have a frame bias of unknown cause (at codons
+with 1 read, 0.30 / 0.36 / 0.34 of the reads in the CDS's frames 0 / 1 / 2,
+against 0.32 / 0.33 / 0.34 in leaders). This check cannot tell how much of
+their excess is translation. In CDS off-frames, the null uses the frame
+profile of all CDSs, and CDSs differ ([Known limits](#known-limits)).
+
+The decoys say the opposite. Of the 2,258 decoys with votes, 11 had
+p ≤ 0.05 (32.1 expected) and 1 had p ≤ 0.01 (2.8). In the 15 libraries, of
+the 2,800 decoys with a null of 1/3 in every codon, 17 had p ≤ 0.05 (60.7),
+3 had p ≤ 0.01 (7.1) and 1 had p ≤ 0.001 (0.5). Part of this is by
+construction: a decoy of a translated ORF cannot lead
+([Reading the results](#reading-the-results)). The decoys of the 184 ORFs
+that the multinomial null called had none at p ≤ 0.05, against 9.7
+expected. At the q < 0.05 cut, 0 of 3,425 decoys passed in the 6 libraries,
+and 3 of 3,425 in the 15 (empirical FDR 0.004).
+
 ## Determinism
 
 As for `quant`: no random numbers anywhere, ties go to the smallest tie-break,
