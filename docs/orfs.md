@@ -65,7 +65,8 @@ ORF that starts at this CUG look well translated. But only 1-2% of the reads
 after the CUG are in that ORF's frame — the rest follow GAPDH's CDS, which the
 ORF overlaps — and harringtonine, which holds ribosomes at start codons
 ([Ingolia et al. 2011](#references)), raises the AUG peak but not the CUG's:
-with it, the AUG has 11-19x the CUG's P-sites, without it about as many.
+with it, the AUG has 11-19x the CUG's P-sites, without it about as many
+([A peak is not a uORF](#a-peak-is-not-a-uorf)).
 
 **What ribokit does and does not do.** ribokit does not find ORFs. It takes a
 catalogue (`--orfs`) — from an ORF caller such as RiboTaper
@@ -622,7 +623,8 @@ are not shipped with ribokit; the numbers come from its validation runs.
   2025](#references)) called in at least 3 of the 15 libraries: 1,683 uORFs
   and 58 uoORFs, with ATG starts 1,051, CTG 416, GTG 150 and TTG 124, and a
   median length of 30 nt. Added to it: the ORF that starts at GAPDH's CUG
-  ([Background](#background)), a uoORF, so 59 uoORFs in all.
+  ([A peak is not a uORF](#a-peak-is-not-a-uorf)), a uoORF, so 59 uoORFs in
+  all.
 
 ### Is the null calibrated?
 
@@ -767,6 +769,23 @@ starts of the same depth. So most catalogue uORFs start as CDSs do, and about ha
 those that start and have power have no frame that the score accepts. A call
 says that ribosomes elongate in the ORF's frame, not that they start at its
 start codon ([Background](#background)).
+
+### A peak is not a uORF
+
+GAPDH's leader has a CUG, made by a variant of this cell line, that holds
+73-89% of the leader's P-sites. In the elongation libraries, nt 0 of the CUG
+has as many P-sites as nt 0 of GAPDH's AUG start codon (514 and 510 in one
+condition, 52 and 60 in the other).
+
+- **Counts.** `orfs` counts the peak for the ORF that starts at the CUG: 842
+  reads over the 6 libraries, 0.6-1.4% of GAPDH's CDS reads per library. A
+  count alone makes this ORF look translated.
+- **Frame.** Only 1.4% of the ORF's score-length P-sites are in its frame
+  (2.4% in the 15 libraries); the rest follow GAPDH's CDS, which the ORF
+  overlaps. `p` is 1 in the 6 libraries, `q` 0.77 in the 15: not called.
+- **Start.** Harringtonine raises the AUG peak but not the CUG's: with it,
+  the AUG has 11-19 times the CUG's P-sites (5,559 against 488, and 845
+  against 44). So the CUG peak is not a usual start peak.
 
 ## Determinism
 
