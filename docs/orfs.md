@@ -163,7 +163,8 @@ for them.
 
 Only transcripts of the GTF are counted. Alignments to BAM references that are
 not in the GTF are dropped before any other step, so the run is the same as on
-a BAM without those references: a read that also aligns to a GTF transcript
+a BAM without those references, up to rounding ([Determinism](#determinism)):
+a read that also aligns to a GTF transcript
 counts there, a read with no other alignment is lost. To leave transcripts out
 of a run, leave them out of the GTF. `stats.tsv` counts what was dropped
 (`refs_not_in_gtf`, `alignments_dropped_ref_not_in_gtf`,
@@ -502,8 +503,9 @@ ribokit score --orfs-prefix out/ctrl_{1,2,3} out/treat_{1,2,3} --out-prefix out/
    `score` needs the same ORF rows in every run, and the annotated CDSs come
    from the GTF. To leave transcripts out of some libraries only, remove their
    alignments from those libraries' BAMs, not the transcripts from the GTF:
-   the other transcripts get the same counts either way
-   ([step 2](#2-outside-components)), and the ORF rows stay the same. The
+   the other transcripts get the same counts either way, up to rounding
+   ([step 2](#2-outside-components), [Determinism](#determinism)), and the
+   ORF rows stay the same. The
    phase-0 offset of short read lengths can differ between libraries (from 3
    to 12 nt at 18-24 nt, in 6 libraries of one experiment). Different
    offsets move reads across the ends of short ORFs differently in each
