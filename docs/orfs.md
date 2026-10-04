@@ -698,25 +698,31 @@ and 3 of 3,425 in the 15 (empirical FDR 0.004).
 ### Power at uORF depth
 
 How many reads does a translated uORF need to be called? Windows of 6-50
-codons in the reading frame of annotated CDSs, which are translated, were
-cut to 5-320 reads by drawing reads without replacement (so the clumps
-stay), and scored as uORFs against the p cut of the 6 libraries (0.0026).
-The share of windows called:
+codons, each a vote, in the reading frame of annotated CDSs, which are
+translated, were cut to 5-320 reads by drawing reads without replacement (so
+the clumps stay), and scored as uORFs against the p cut of the 6 libraries
+(0.0026). The share of windows called:
 
-| Codons \ reads | 5 | 10 | 20 | 40 | 80 | 160 | 320 |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| 6 | 0 | 0.01 | 0.07 | 0.21 | 0.33 | 0.50 | 0.57 |
-| 10 | 0 | 0.11 | 0.31 | 0.56 | 0.72 | 0.77 | 0.86 |
-| 15 | 0 | 0.22 | 0.52 | 0.73 | 0.88 | 0.93 | 0.97 |
-| 20 | 0 | 0.30 | 0.64 | 0.85 | 0.95 | 0.98 | 0.99 |
-| 30 | 0 | 0.41 | 0.76 | 0.92 | 0.98 | 0.99 | 0.99 |
-| 50 | 0 | 0.48 | 0.84 | 0.97 | 0.99 | 1.00 | 1.00 |
+<figure markdown="span">
+  ![Heatmap of the share of CDS windows called, by voting codons (6-50) and reads (5-320): 0 at 5 reads, rising with both; 0.5 at 15 codons and 20 reads, 0.8 or more from 20 codons and 40 reads](img/power.svg)
+</figure>
 
-A 15-codon uORF needs about 20 reads to be called half the time; 80% needs
-about 20 codons and 40 reads, or 15 codons and 80. At every size and depth,
-0.89-0.96 of the codons with reads lead, so the limit is the number of
-codons with reads: 20 reads cover a median of 7 of 15 codons, and 6 votes
-that all lead are needed.
+??? note "The numbers"
+
+    | Voting codons \ reads | 5 | 10 | 20 | 40 | 80 | 160 | 320 |
+    |---|---:|---:|---:|---:|---:|---:|---:|
+    | 6 | 0 | 0.01 | 0.07 | 0.21 | 0.33 | 0.50 | 0.57 |
+    | 10 | 0 | 0.11 | 0.31 | 0.56 | 0.72 | 0.77 | 0.86 |
+    | 15 | 0 | 0.22 | 0.52 | 0.73 | 0.88 | 0.93 | 0.97 |
+    | 20 | 0 | 0.30 | 0.64 | 0.85 | 0.95 | 0.98 | 0.99 |
+    | 30 | 0 | 0.41 | 0.76 | 0.92 | 0.98 | 0.99 | 0.99 |
+    | 50 | 0 | 0.48 | 0.84 | 0.97 | 0.99 | 1.00 | 1.00 |
+
+A uORF with 15 voting codons needs about 20 reads to be called half the time;
+80% needs about 20 codons and 40 reads, or 15 codons and 80. At every size
+and depth, 0.89-0.96 of the codons with reads lead, so the limit is the
+number of codons with reads: 20 reads cover a median of 7 of 15 codons, and 6
+votes that all lead are needed.
 
 Applied to the catalogue, a uORF's **power** is the share of CDS windows with
 its codons and reads that are called. 1,472 of the 1,683 uORFs cannot be called
