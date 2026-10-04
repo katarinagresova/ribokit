@@ -234,12 +234,22 @@ The factor of 3 gives the frame term a mean of 1 over the three frames,
 $\tfrac{1}{3}\sum_f 3\,\pi_l(f) = 1$, so a read length with no frame
 information ($\pi_l$ flat at 1/3) reduces to `quant`'s plain $1/L_k$. When
 every component a read is compatible with is an ORF that puts it in the same
-frame, the frame terms cancel and this is exactly `quant`'s model. The term
-matters where ORFs disagree on frame, e.g. a uoORF sharing reads with its host
-CDS, and against outside components, which have no frame term: there a read in
-an ORF's frame 0 leans toward the ORF, an off-frame read toward the outside
-component. Components that no read's frame or density tells apart are listed
-in `ties.tsv`, as in `quant`.
+frame, the frame terms cancel and this is exactly `quant`'s model: nested ORFs
+split their shared reads by density alone ([Known limits](#known-limits)).
+The term matters where ORFs disagree on frame, e.g. a uoORF sharing reads
+with its host CDS, and against outside components, which have no frame
+term: there a read in an ORF's frame 0 leans toward the ORF, an off-frame
+read toward the outside component. Components that no read's frame or
+density tells apart are listed in `ties.tsv`, as in `quant`.
+
+A numeric example: a read length with $\pi_l = (0.9, 0.07, 0.03)$, and a
+uoORF in frame 1 of its CDS, at the same density as the CDS. A read in the
+CDS's frame 0 is in the uoORF's frame 2: its weights are $3 \cdot 0.9 = 2.7$
+for the CDS and $3 \cdot 0.03 = 0.09$ for the uoORF, so the uoORF gets 3% of
+it. A read in the uoORF's frame 0 is in the CDS's frame 1: 2.7 for the uoORF
+and 0.21 for the CDS, so the uoORF gets 93%. To take a read in the CDS's
+frame 0, the uoORF has to be much denser: at 10 times the CDS's density it
+gets 25%.
 
 ## 5. The codon lead score
 
