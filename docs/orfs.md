@@ -339,7 +339,7 @@ with one `--orfs-prefix`. The runs must share one ORF table: if their
   leaders, a codon with 2 reads led in a given frame about 0.27 of the time,
   not the multinomial's 1/9. The multinomial alone called 184 uORFs and
   uoORFs, one vote 97, all of them among the 184; the 87 calls lost had a
-  median of 6 codons with votes and 2.2 reads per codon. Synthetic reads do
+  median of 6 codons with reads and 2.2 reads per codon. Synthetic reads do
   not clump, so on synthetic data one vote is conservative: U2's and U3's
   uoORFs are not called ([worked example](#worked-example)).
 - **The statistic.** With $\text{leads} = \sum_i \mathbb{1}[\text{codon } i
