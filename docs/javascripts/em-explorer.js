@@ -26,6 +26,9 @@
     t.textContent = s;
     return t;
   }
+  // Drawing width in SVG units: 720, scaled to the column; on a narrow column (a phone), the column's width in px
+  // (at least 300), so that labels keep their size.
+  const layoutWidth = (box) => (box.clientWidth < 600 ? Math.max(300, Math.round(box.clientWidth)) : 720);
   const fmt = (v) => (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1));
 
   // Expected reads per region = length x summed density of the CDSs that contain it.
@@ -104,8 +107,8 @@
     root.appendChild(controls);
     const q = (k) => controls.querySelector(`[data-k="${k}"]`);
 
-    const W = 720, H = frame ? 352 : 330;
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img",
+    let W = layoutWidth(controls);
+    const svg = el("svg", { role: "img",
                             "aria-label": frame ? "A uoORF over its CDS's start, their reads, and the EM estimate over steps" :
                               "Two CDSs, their reads, and the EM estimate over steps" }, root);
     const readout = document.createElement("p");
@@ -134,10 +137,16 @@
       while (svg.firstChild) svg.removeChild(svg.firstChild);
       const sc = frame ? FRAME : SCENARIOS[q("sc").value];
       const K = res.trace.length - 1, alpha = res.trace[k];
+      const narrow = W < 720;
 
       // Structure: the CDSs as rows, regions coloured by which CDSs contain them.
-      const total = sc.regions.reduce((s, r) => s + r.len, 0), x0 = frame ? 64 : 40, sx = (680 - x0) / total;
-      let x = x0;
+      const total = sc.regions.reduce((s, r) => s + r.len, 0), x0 = frame ? 64 : 40;
+      const sx = ((narrow ? W - 10 : 680) - x0) / total;
+      let x = x0, line = 0;
+      // Wide: each label under its region. Narrow: one line per label, in region order.
+      const note = (xm, y, s, attrs, indent) => narrow ?
+        label(svg, indent ? 14 : 2, 92 + 16 * line++, s, Object.assign({ "text-anchor": "start" }, attrs)) :
+        label(svg, xm, y, s, attrs);
       NAMES.forEach((n, t) => label(svg, frame ? 30 : 14, 31 + 30 * t, n, { "font-weight": "bold", fill: C[n] }));
       sc.regions.forEach((r, i) => {
         const key = r.members.map((t) => NAMES[t]).join("");
@@ -149,23 +158,24 @@
               { fill: "white", "font-size": 11 });
         const to = frame ? (r.members.length > 1 ? "both" : NAMES[r.members[0]]) :
           `{${r.members.map((t) => NAMES[t]).join(", ")}}`;
-        label(svg, x + w / 2, 92, `${fmt(n)} reads → ${to}`,
-              { fill: C[key], "font-size": 12 });
+        note(x + w / 2, 92, `${fmt(n)} reads → ${to}`, { fill: C[key], "font-size": 12 });
         if (frame && i === 0 && +q("peak").value > 0)
-          label(svg, x + w / 2, 108, `incl. ${q("peak").value} start-peak reads`, { fill: C.muted, "font-size": 11 });
+          note(x + w / 2, 108, `incl. ${q("peak").value} start-peak reads`, { fill: C.muted, "font-size": 11 }, true);
         if (frame && i === 1)
-          label(svg, x + w / 2, 124, `CDS frame 0 / 1 / 2: ${m.classes.map((c) => fmt(c.count)).join(" / ")}`,
-                { fill: C.muted, "font-size": 11 });
+          note(x + w / 2, 124, `CDS frame 0 / 1 / 2: ${m.classes.map((c) => fmt(c.count)).join(" / ")}`,
+               { fill: C.muted, "font-size": 11 }, true);
         x += w;
       });
 
-      // Bars: truth (outline) vs current estimate (filled).
-      const top = frame ? 150 : 128, ph = 150, base = top + ph;
+      // Bars: truth (outline) vs current estimate (filled). Wide: the trace to their right. Narrow: the trace below,
+      // under room for the most label lines (5 with the frame term, 3 without).
+      const top = narrow ? 92 + 16 * (frame ? 4 : 2) + 36 : frame ? 150 : 128, ph = narrow ? 120 : 150, base = top + ph;
+      const bx0 = narrow ? (W - 250) / 2 : 0;
       const ymax = res.trace.reduce((mx, a) => Math.max(mx, a[0], a[1]), Math.max(1, ...m.truth)) * 1.1;
-      const Y = (v) => base - (v / ymax) * ph;
-      el("line", { x1: 0, x2: 250, y1: base, y2: base, stroke: "#b0bec5" }, svg);
+      const Y = (v, b = base) => b - (v / ymax) * ph;
+      el("line", { x1: bx0, x2: bx0 + 250, y1: base, y2: base, stroke: "#b0bec5" }, svg);
       NAMES.forEach((n, t) => {
-        const bx = 30 + t * 115;
+        const bx = bx0 + 30 + t * 115;
         el("rect", { x: bx, y: Y(alpha[t]), width: 40, height: base - Y(alpha[t]), fill: C[n], rx: 2 }, svg);
         el("rect", { x: bx + 44, y: Y(m.truth[t]), width: 40, height: base - Y(m.truth[t]), fill: "none",
                      stroke: C[n], "stroke-dasharray": "4,3", "stroke-width": 1.5, rx: 2 }, svg);
@@ -175,23 +185,25 @@
         label(svg, bx + 64, base + 15, frame ? "true" : `${n} true`, { "font-size": 11, fill: C.muted });
         if (frame) label(svg, bx + 42, base + 30, n, { "font-size": 11, "font-weight": "bold", fill: C[n] });
       });
-      label(svg, 125, top - 10, "expected reads", { fill: C.muted });
+      label(svg, bx0 + 125, top - 10, "expected reads", { fill: C.muted });
 
       // Trace: estimate per step, truth dashed.
-      const px0 = 300, pw = W - px0 - 10, X = (i) => px0 + (i / Math.max(K, 10)) * pw;
-      el("line", { x1: px0, x2: px0 + pw, y1: base, y2: base, stroke: "#b0bec5" }, svg);
-      el("line", { x1: px0, x2: px0, y1: top, y2: base, stroke: "#b0bec5" }, svg);
+      const ttop = narrow ? base + 66 : top, tbase = ttop + ph;
+      const px0 = narrow ? 10 : 300, pw = W - px0 - 10, X = (i) => px0 + (i / Math.max(K, 10)) * pw;
+      svg.setAttribute("viewBox", `0 0 ${W} ${tbase + 52}`);
+      el("line", { x1: px0, x2: px0 + pw, y1: tbase, y2: tbase, stroke: "#b0bec5" }, svg);
+      el("line", { x1: px0, x2: px0, y1: ttop, y2: tbase, stroke: "#b0bec5" }, svg);
       NAMES.forEach((n, t) => {
-        el("line", { x1: px0, x2: px0 + pw, y1: Y(m.truth[t]), y2: Y(m.truth[t]), stroke: C[n],
+        el("line", { x1: px0, x2: px0 + pw, y1: Y(m.truth[t], tbase), y2: Y(m.truth[t], tbase), stroke: C[n],
                      "stroke-dasharray": "4,3", opacity: 0.6 }, svg);
-        const pts = res.trace.slice(0, k + 1).map((a, i) => `${X(i).toFixed(1)},${Y(a[t]).toFixed(1)}`).join(" ");
+        const pts = res.trace.slice(0, k + 1).map((a, i) => `${X(i).toFixed(1)},${Y(a[t], tbase).toFixed(1)}`).join(" ");
         el("polyline", { points: pts, fill: "none", stroke: C[n], "stroke-width": 2 }, svg);
-        el("circle", { cx: X(k), cy: Y(alpha[t]), r: 3.5, fill: C[n] }, svg);
+        el("circle", { cx: X(k), cy: Y(alpha[t], tbase), r: 3.5, fill: C[n] }, svg);
       });
-      label(svg, px0 + pw / 2, top - 10, "estimate per step (dashed: truth)", { fill: C.muted });
-      label(svg, px0, base + 15, "0", { "font-size": 11, fill: C.muted });
-      label(svg, px0 + pw, base + 15, String(Math.max(K, 10)), { "font-size": 11, fill: C.muted, "text-anchor": "end" });
-      label(svg, px0 + pw / 2, base + 30, "EM step", { fill: C.muted, "font-size": 11 });
+      label(svg, px0 + pw / 2, ttop - 10, "estimate per step (dashed: truth)", { fill: C.muted });
+      label(svg, px0, tbase + 15, "0", { "font-size": 11, fill: C.muted });
+      label(svg, px0 + pw, tbase + 15, String(Math.max(K, 10)), { "font-size": 11, fill: C.muted, "text-anchor": "end" });
+      label(svg, px0 + pw / 2, tbase + 30, "EM step", { fill: C.muted, "font-size": 11 });
 
       // Readout.
       const done = k === K;
@@ -250,6 +262,8 @@
     recompute();
     k = res.trace.length - 1;
     draw();
+    if (typeof ResizeObserver !== "undefined")
+      new ResizeObserver(() => { const w = layoutWidth(controls); if (w !== W) { W = w; draw(); } }).observe(root);
   }
 
   function init() {
