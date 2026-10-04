@@ -119,7 +119,8 @@ in `ties.tsv`, as in `quant`.
 annotated CDSs (the annotated CDSs are assumed translated), by length and
 frame. `ribokit score` sums the `codons.tsv` of one or more `orfs` runs — e.g.
 replicate libraries — and scores the pool, so per-library scores are calls
-with one `--orfs-prefix`.
+with one `--orfs-prefix`. The runs must share one ORF table: if their
+`orfs.tsv` list different ORFs, `score` stops with an error.
 
 <figure markdown="span">
   ![Seven codons of an ORF after its start codon, their P-sites split by frame: four lead, two do not, one has no reads](img/codon_lead.svg)
@@ -132,7 +133,9 @@ with one `--orfs-prefix`.
 - **Which lengths vote.** By default, the read lengths whose frame-0 share is
   at least 0.9 in *every* given library's `frames.tsv` (`--frame-lengths LO-HI`
   overrides this). Using the same lengths for every library in a comparison
-  matters more than using every length.
+  matters more than using every length. If no length passes in every library,
+  `score` stops and asks for `--frame-lengths`; the lengths given must be
+  inside every run's `--read-lengths`.
 - **The null.** For a codon that is not translated, each of its 3 positions is
   weighted by its expected reads from the EM: the ORF's own density as a
   frame-less background, plus, inside the host CDS, the CDS's density times
