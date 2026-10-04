@@ -612,6 +612,15 @@ pass). The synthetic reads have a weak frame — frame-0 shares of 0.48-0.67 at
 | U2's uoORF | uoORF | 49 | 772 | 17 | 12.9 | 0.19 | no |
 | U3's uoORF | uoORF | 49 | 798 | 20 | 14.6 | 0.13 | no |
 
+<figure markdown="span">
+  ![Score-length P-sites per codon and frame for U1's uORF, U1's CTG ORF and U4's uoORF: the uORF's frame-0 bars lead in 19 of 20 codons; the CTG ORF has a peak on its start codon and few reads after it; U4's uoORF has the CDS's start peak at codon 19 and, inside the CDS, mostly off-frame bars](img/codon_tracks.svg)
+  <figcaption>Score-length P-sites (28-30 nt) per codon of three ORFs of the score run, by frame of
+  the ORF. U1's uORF: almost every codon leads. U1's CTG ORF: the peak is on its start codon, which
+  does not vote, and the codons after it have 0-2 reads. U4's uoORF: codon 19 holds the CDS's start
+  peak, and inside the CDS the CDS's own reads fall in the uoORF's frame 2 and outvote its frame 0.
+  Bars are cut at 20 reads; above a cut codon, its reads in frames 0/1/2.</figcaption>
+</figure>
+
 U1's uORF, N1's ORF and U5's uoORF are called; the untranslated candidate, the
 CTG start-only peak and U4's uoORF are not. U2's and U3's uoORFs are
 translated, and their `min_p` (the best `p` their 49 voting codons could reach
