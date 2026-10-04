@@ -268,6 +268,10 @@ with one `--orfs-prefix`. The runs must share one ORF table: if their
   Codons are numbered as in <code>codons.tsv</code>: codon 0, the start codon, is not shown.</figcaption>
 </figure>
 
+- **Why the start codon does not vote.** Ribosomes that initiate make a peak
+  at the start codon whether or not they go on to elongate, as at GAPDH's CUG
+  ([Background](#background)). The codons after it ask only whether
+  ribosomes elongate in the ORF's frame.
 - **Which lengths vote.** By default, the read lengths whose frame-0 share is
   at least 0.9 in *every* given library's `frames.tsv` (`--frame-lengths LO-HI`
   overrides this). Using the same lengths for every library in a comparison
@@ -282,6 +286,17 @@ with one `--orfs-prefix`. The runs must share one ORF table: if their
   library; a codon's $q$ mixes them, weighted by its reads of each. Outside any
   CDS overlap $q = (1/3, 1/3, 1/3)$, but inside one, the host CDS's own frame bleed
   raises or lowers the untranslated odds of a lead.
+- **Why the ORF's own density is the background.** The null is "this ORF is
+  not translated": its reads, at the density observed, then come from
+  sources with no frame. Thus depth alone does not make a call; only the
+  frames do.
+- **The null inside a CDS, in numbers.** A uoORF in frame 1 of its CDS, a
+  read length with $\pi_l = (0.9, 0.07, 0.03)$, and the uoORF as dense as the
+  CDS ($d$). The uoORF's frames 0, 1, 2 are the CDS's frames 1, 2, 0, so they
+  get $d(1 + 3 \cdot 0.07) = 1.21d$, $d(1 + 3 \cdot 0.03) = 1.09d$ and
+  $d(1 + 3 \cdot 0.9) = 3.7d$: $q = (0.20, 0.18, 0.62)$. A lead in the
+  uoORF's frame then has a null probability of 0.20, not 1/3, so it is
+  stronger evidence than outside the CDS.
 - **One vote per codon.** A codon's reads do not arrive independently — two
   footprints of a codon share a nucleotide far more often than independent
   draws would — so treating them as a multinomial sample is anti-conservative.
@@ -289,7 +304,16 @@ with one `--orfs-prefix`. The runs must share one ORF table: if their
   extremes: $q_0$ (all of the codon's reads count as a single clump) and the
   exact multinomial probability for its read count (independent reads). This
   is conservative outside a CDS overlap (where $q_0 = 1/3$) and only differs
-  from it where the ORF's frame is also the host CDS's dominant frame.
+  from it where the ORF's frame is also the host CDS's dominant frame. In 6
+  human libraries, at codons with 2 reads, both reads were in one frame in
+  80% of the leader codons and 75% of the trailer codons, against 33% for
+  independent reads; reads with one alignment clumped as much or more. So in
+  leaders, a codon with 2 reads led in a given frame about 0.27 of the time,
+  not the multinomial's 1/9. The multinomial alone called 184 uORFs and
+  uoORFs, one vote 97, all of them among the 184; the 87 calls lost had a
+  median of 6 codons with votes and 2.2 reads per codon. Synthetic reads do
+  not clump, so on synthetic data one vote is conservative: U2's and U3's
+  uoORFs are not called ([worked example](#worked-example)).
 - **The statistic.** With $\text{leads} = \sum_i \mathbb{1}[\text{codon } i
   \text{ leads}]$:
   $$
