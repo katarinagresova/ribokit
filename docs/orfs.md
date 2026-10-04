@@ -787,6 +787,37 @@ condition, 52 and 60 in the other).
   the AUG has 11-19 times the CUG's P-sites (5,559 against 488, and 845
   against 44). So the CUG peak is not a usual start peak.
 
+### What each counting rule changes
+
+Against a simple **span count**: every alignment of 20-40 nt (soft clips
+included), on either strand and with any CIGAR, counts 1 at a P-site 12 nt
+from its 5′ end, in any frame; a uoORF counts only upstream of the CDS start,
+and a leader is the 5′ UTR without the catalogue ORFs. One rule changes per
+step, toward `orfs`. Totals over the 6 libraries, relative to the span count:
+
+| Step | uORF | uoORF | CDS | leader |
+|---|---:|---:|---:|---:|
+| Span count | 1 | 1 | 1 | 1 |
+| Without antisense alignments | 0.972 | 0.708 | 0.979 | 0.852 |
+| Without the other alignments `orfs` drops ([Method, step 2](method.md#2-reads)) | 0.970 | 0.707 | 0.978 | 0.845 |
+| Footprints of 18-30 nt | 0.976 | 0.724 | 0.984 | 0.705 |
+| One offset per read length | 0.973 | 0.721 | 0.984 | 0.717 |
+| One count per read: 1 / its alignments | 0.934 | 0.658 | 0.851 | 0.639 |
+| uoORFs over their whole span | 0.934 | 1.615 | 0.851 | 0.639 |
+| `orfs`: the EM with the frame term | 0.833 | 1.213 | 0.931 | 0.632 |
+
+- **Antisense alignments** were 14% of the span count's alignments, and 29%
+  of its uoORF reads.
+- **The offsets** changed few counts: of the uORFs with at least 10 reads,
+  4 moved by more than 0.5 in log2.
+- **One count per read** removed 13.5% of the CDS total; the EM step gave
+  60% of it back.
+- **uoORFs** got 2.5 times the reads over their whole span; the EM and the
+  frame term then left 75% of that to them.
+- **uORFs** lost most in the EM step, and the nested ones most of all
+  ([Known limits](#known-limits)): against the span count, nested uORFs
+  kept 0.53 of their reads, the others 0.94.
+
 ## Determinism
 
 As for `quant`: no random numbers anywhere, ties go to the smallest tie-break,
