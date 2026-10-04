@@ -359,6 +359,24 @@ with one `--orfs-prefix`. The runs must share one ORF table: if their
   two copies this way (the shift that puts it in the CDS's frame), as does an
   out-of-frame ORF inside a CDS; a uORF's copies never do.
 
+**Try it.** One simulated ORF, scored as `score` scores it. Reads come in
+clumps on one nucleotide, so all reads of a clump share a codon and a frame;
+a translated ORF puts a clump in its frame 0 with probability $\pi_0$.
+Background reads have no frame. The last codons can lie inside a host CDS,
+whose reads follow the CDS's frame. The same settings give the same draw;
+*new draw* changes it.
+
+<div class="rk-widget" id="score-explorer"><noscript>This interactive example needs JavaScript.</noscript></div>
+
+*Things to try:* with the defaults (15 voting codons, 20 reads in clumps of
+2), about 7 codons get reads, as in real data at that depth, and even when
+most of them lead `p` seldom reaches the cut; *new draw* shows the spread.
+Tick *null: independent reads*: the same reads give a much smaller `p`,
+because that null takes a clump in one frame for a rare event. Untick
+*translated*: about a third of the votes lead. Set 5 voting codons: `min_p`
+is $3^{-5} = 0.0041$ at any depth. Put 15 codons inside a host CDS: its reads
+fall in the ORF's off-frames, and there the null expects fewer leads.
+
 ## 6. Outputs
 
 Each file is written as `<prefix>.<name>`:

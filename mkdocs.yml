@@ -31,3 +31,4 @@ extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
   - javascripts/offset-explorer.js
   - javascripts/em-explorer.js
+  - javascripts/score-explorer.js
