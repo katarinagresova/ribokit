@@ -172,15 +172,30 @@ Each file is written as `<prefix>.<name>`:
 
 | File | Content |
 |---|---|
-| `orfs.tsv` | `ORF_id Name type start end start_codon Length NumReads`, one row per ORF and outside component, sorted by `Name`, `start`, `end`. `NA` where no read is compatible. |
+| `orfs.tsv` | `ORF_id Name type start end start_codon Length NumReads`, one row per ORF and outside component, sorted by `Name`, `start`, `end`. `NA` where no read is compatible. For an outside component, `type` is `leader`, `trailer` or `transcript`, `start`–`end` is its whole region, `Length` counts only its positions in no ORF (the length the EM uses), and `start_codon` is `NA`. |
 | `offsets.tsv` | The same table as `quant`'s ([Method, step 3](method.md#3-p-site-offsets)): on the same BAM and read lengths, the two commands give the same offsets, and either one's `--offsets` accepts it. `orfs` uses only each length's phase-0 offset. |
 | `frames.tsv` | Per read length: `offset` (the phase-0 offset), `reads`, `frame0 frame1 frame2`. |
-| `codons.tsv` | `ORF_id codon length frame0 frame1 frame2`: P-sites per codon, length and frame, for every ORF but the annotated CDSs — `score`'s input. |
+| `codons.tsv` | `ORF_id codon length frame0 frame1 frame2`: P-sites per codon, length and frame, for every ORF but the annotated CDSs — `score`'s input. `codon` counts from 0, the start codon, up to and including the stop codon, which the decoys reach into. Frames are relative to the ORF's start, not to the CDS as in `frames.tsv`. Only codons and lengths with P-sites have a row. Each alignment counts 1: a read that aligns to several transcripts counts once on each, not 1/(number of alignments). |
 | `ties.tsv`, `stats.tsv` | As for `quant`, but over every ORF and outside component. |
 | `psites.tsv` | `read Name psite length`, one row per alignment with a P-site — every alignment in the length window, not only those assigned to a CDS. |
 | `scores.tsv` | One row per scored ORF: `ORF_id Name type start end codons codons_with_reads reads in_frame_share leads expected z p min_p q`. |
-| `decoys.tsv` | The same columns plus `shift` (1 or 2 nt), without `q`. |
-| `score_stats.tsv` | The read lengths used, and how many ORFs and decoys were scored. |
+| `decoys.tsv` | The same columns plus `shift` (1 or 2 nt), without `q`. `ORF_id`, `Name` and `type` are the original ORF's; `start` and `end` are the shifted copy's. |
+| `score_stats.tsv` | `libraries`, `frame_lengths` (the score lengths), `orfs_scored`, `decoys_scored`, and `decoys_left_out_cds_frame` (the shifted copies left out in the CDS's frame, see [Decoys](#5-the-codon-lead-score)). |
+
+The columns of `scores.tsv`:
+
+- `codons`: the voting codons, i.e. the ORF's codons without its start codon
+  (the stop codon is never part of an ORF).
+- `codons_with_reads`: the voting codons with at least one P-site of the score
+  lengths. These are the votes.
+- `reads`: those P-sites, summed over the libraries.
+- `in_frame_share`: the share of `reads` in the ORF's frame; `NA` without
+  reads.
+- `leads`: the votes that lead. `expected`: $\sum_i p_i$, the leads expected
+  under the null.
+- `z`, `p`, `min_p`: as in [step 5](#5-the-codon-lead-score). An ORF without
+  votes has `z` = `NA`, `p` = 1 and `min_p` = 1.
+- `q`: Benjamini-Hochberg over every row, ORFs without votes included.
 
 ## Worked example
 
