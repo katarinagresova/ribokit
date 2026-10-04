@@ -196,6 +196,15 @@ translated in frame 0 only, has reads in its frames 1 and 2. In 6 human
 libraries, 90-95% of the 27-28 nt reads inside CDSs were in frame 0, but
 only 41-81% at the other lengths of 18-30 nt.
 
+<figure markdown="span">
+  ![Three 29 nt footprints of ribosomes on one codon, with their 5′ ends on codon nt 0, 1 and 2: quant's offsets 12, 11 and 13 put all three P-sites on nt 0 of the codon; orfs' offset 12 puts them in frames 0, 1 and 2](img/offframe.svg)
+  <figcaption>Three 29 nt footprints of ribosomes on one codon, trimmed differently at the 5′ end
+  (phases 0, 1, 2). <code>quant</code> gives each phase its own offset (12, 11, 13), so all three
+  P-sites land on nt 0 of the codon, in the CDS frame. <code>orfs</code> gives the read length one
+  offset, phase 0's (12): the phase-1 footprint puts its P-site in frame 1, the phase-2 footprint
+  in frame 2.</figcaption>
+</figure>
+
 How often a read length's P-sites, placed this way, land in frame 0/1/2 of a
 CDS is that length's **frame profile**, $\pi_l(f)$. It is measured from reads
 at least 15 nt inside a CDS at both ends (no start or stop peaks), weighted

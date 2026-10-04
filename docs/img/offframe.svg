@@ -1,0 +1,289 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 372" width="800" height="372" font-family="Roboto, Helvetica Neue, Arial, sans-serif" font-size="13" fill="#263238">
+<!-- generated: three 29 nt footprints of one ribosome, phases 0/1/2 (5' end at codon nt 0, +1, -1) -->
+<rect x="0" y="0" width="800" height="372" fill="white" stroke="none"/>
+<rect x="374" y="34" width="48" height="312" fill="#f58518" stroke="none" opacity="0.10"/>
+<text x="398.0" y="26" text-anchor="middle" font-size="12" fill="#f58518" font-weight="bold" font-style="normal">P-site codon</text>
+<text x="138" y="47" text-anchor="end" font-size="13" fill="#78909c" font-weight="normal" font-style="normal">CDS codons</text>
+<rect x="150" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="158.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="166" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="174.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<rect x="182" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="190.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">0</text>
+<rect x="198" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="206.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="214" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="222.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<rect x="230" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="238.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">0</text>
+<rect x="246" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="254.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="262" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="270.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<rect x="278" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="286.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">0</text>
+<rect x="294" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="302.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="310" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="318.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<rect x="326" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="334.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">0</text>
+<rect x="342" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="350.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="358" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="366.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<rect x="374" y="32" width="16" height="20" fill="#f58518" stroke="white"/>
+<text x="382.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">0</text>
+<rect x="390" y="32" width="16" height="20" fill="#f58518" stroke="white"/>
+<text x="398.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="406" y="32" width="16" height="20" fill="#f58518" stroke="white"/>
+<text x="414.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<rect x="422" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="430.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">0</text>
+<rect x="438" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="446.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="454" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="462.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<rect x="470" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="478.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">0</text>
+<rect x="486" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="494.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="502" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="510.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<rect x="518" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="526.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">0</text>
+<rect x="534" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="542.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="550" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="558.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<rect x="566" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="574.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">0</text>
+<rect x="582" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="590.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="598" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="606.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<rect x="614" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="622.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">0</text>
+<rect x="630" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="638.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="646" y="32" width="16" height="20" fill="#eef3f9" stroke="white"/>
+<text x="654.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<rect x="662" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="670.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">0</text>
+<rect x="678" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="686.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">1</text>
+<rect x="694" y="32" width="16" height="20" fill="#dce6f2" stroke="white"/>
+<text x="702.0" y="66" text-anchor="middle" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">2</text>
+<line x1="182" y1="29" x2="182" y2="55" stroke="#4c78a8" stroke-width="1.5"/>
+<line x1="230" y1="29" x2="230" y2="55" stroke="#4c78a8" stroke-width="1.5"/>
+<line x1="278" y1="29" x2="278" y2="55" stroke="#4c78a8" stroke-width="1.5"/>
+<line x1="326" y1="29" x2="326" y2="55" stroke="#4c78a8" stroke-width="1.5"/>
+<line x1="374" y1="29" x2="374" y2="55" stroke="#4c78a8" stroke-width="1.5"/>
+<line x1="422" y1="29" x2="422" y2="55" stroke="#4c78a8" stroke-width="1.5"/>
+<line x1="470" y1="29" x2="470" y2="55" stroke="#4c78a8" stroke-width="1.5"/>
+<line x1="518" y1="29" x2="518" y2="55" stroke="#4c78a8" stroke-width="1.5"/>
+<line x1="566" y1="29" x2="566" y2="55" stroke="#4c78a8" stroke-width="1.5"/>
+<line x1="614" y1="29" x2="614" y2="55" stroke="#4c78a8" stroke-width="1.5"/>
+<line x1="662" y1="29" x2="662" y2="55" stroke="#4c78a8" stroke-width="1.5"/>
+<text x="716" y="66" text-anchor="start" font-size="10" fill="#78909c" font-weight="normal" font-style="normal">frame</text>
+<text x="150" y="98" text-anchor="start" font-size="13" fill="#263238" font-weight="bold" font-style="normal">quant: one offset per read length and phase</text>
+<text x="138" y="123" text-anchor="end" font-size="13" fill="#263238" font-weight="normal" font-style="normal">phase 0 · offset 12</text>
+<rect x="182" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="198" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="214" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="230" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="246" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="262" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="278" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="294" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="310" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="326" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="342" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="358" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="374" y="108" width="16" height="20" fill="#2a9d8f" stroke="#b0bec5"/>
+<rect x="390" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="406" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="422" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="438" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="454" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="470" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="486" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="502" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="518" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="534" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="550" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="566" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="582" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="598" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="614" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="630" y="108" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="181" y="107" width="3" height="22" fill="#263238" stroke="none"/>
+<text x="718" y="123" text-anchor="start" font-size="12" fill="#2a9d8f" font-weight="bold" font-style="normal">frame 0</text>
+<text x="138" y="157" text-anchor="end" font-size="13" fill="#263238" font-weight="normal" font-style="normal">phase 1 · offset 11</text>
+<rect x="198" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="214" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="230" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="246" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="262" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="278" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="294" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="310" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="326" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="342" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="358" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="374" y="142" width="16" height="20" fill="#2a9d8f" stroke="#b0bec5"/>
+<rect x="390" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="406" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="422" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="438" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="454" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="470" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="486" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="502" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="518" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="534" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="550" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="566" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="582" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="598" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="614" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="630" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="646" y="142" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="197" y="141" width="3" height="22" fill="#263238" stroke="none"/>
+<text x="718" y="157" text-anchor="start" font-size="12" fill="#2a9d8f" font-weight="bold" font-style="normal">frame 0</text>
+<text x="138" y="191" text-anchor="end" font-size="13" fill="#263238" font-weight="normal" font-style="normal">phase 2 · offset 13</text>
+<rect x="166" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="182" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="198" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="214" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="230" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="246" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="262" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="278" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="294" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="310" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="326" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="342" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="358" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="374" y="176" width="16" height="20" fill="#2a9d8f" stroke="#b0bec5"/>
+<rect x="390" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="406" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="422" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="438" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="454" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="470" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="486" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="502" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="518" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="534" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="550" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="566" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="582" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="598" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="614" y="176" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="165" y="175" width="3" height="22" fill="#263238" stroke="none"/>
+<text x="718" y="191" text-anchor="start" font-size="12" fill="#2a9d8f" font-weight="bold" font-style="normal">frame 0</text>
+<text x="150" y="232" text-anchor="start" font-size="13" fill="#263238" font-weight="bold" font-style="normal">orfs: one offset per read length, phase 0's</text>
+<text x="138" y="257" text-anchor="end" font-size="13" fill="#263238" font-weight="normal" font-style="normal">phase 0 · offset 12</text>
+<rect x="182" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="198" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="214" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="230" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="246" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="262" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="278" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="294" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="310" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="326" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="342" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="358" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="374" y="242" width="16" height="20" fill="#2a9d8f" stroke="#b0bec5"/>
+<rect x="390" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="406" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="422" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="438" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="454" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="470" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="486" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="502" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="518" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="534" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="550" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="566" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="582" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="598" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="614" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="630" y="242" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="181" y="241" width="3" height="22" fill="#263238" stroke="none"/>
+<text x="718" y="257" text-anchor="start" font-size="12" fill="#2a9d8f" font-weight="bold" font-style="normal">frame 0</text>
+<text x="138" y="291" text-anchor="end" font-size="13" fill="#263238" font-weight="normal" font-style="normal">phase 1 · offset 12</text>
+<rect x="198" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="214" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="230" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="246" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="262" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="278" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="294" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="310" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="326" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="342" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="358" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="374" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="390" y="276" width="16" height="20" fill="#9aa5b1" stroke="#b0bec5"/>
+<rect x="406" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="422" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="438" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="454" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="470" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="486" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="502" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="518" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="534" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="550" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="566" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="582" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="598" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="614" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="630" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="646" y="276" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="197" y="275" width="3" height="22" fill="#263238" stroke="none"/>
+<text x="718" y="291" text-anchor="start" font-size="12" fill="#78909c" font-weight="normal" font-style="normal">frame 1</text>
+<text x="138" y="325" text-anchor="end" font-size="13" fill="#263238" font-weight="normal" font-style="normal">phase 2 · offset 12</text>
+<rect x="166" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="182" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="198" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="214" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="230" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="246" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="262" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="278" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="294" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="310" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="326" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="342" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="358" y="310" width="16" height="20" fill="#9aa5b1" stroke="#b0bec5"/>
+<rect x="374" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="390" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="406" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="422" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="438" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="454" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="470" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="486" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="502" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="518" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="534" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="550" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="566" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="582" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="598" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="614" y="310" width="16" height="20" fill="white" stroke="#b0bec5"/>
+<rect x="165" y="309" width="3" height="22" fill="#263238" stroke="none"/>
+<text x="718" y="325" text-anchor="start" font-size="12" fill="#78909c" font-weight="normal" font-style="normal">frame 2</text>
+<rect x="150" y="350" width="14" height="10" fill="#2a9d8f" stroke="none" rx="1"/>
+<text x="170" y="359" text-anchor="start" font-size="11" fill="#546e7a" font-weight="normal" font-style="normal">P-site in the CDS frame</text>
+<rect x="330" y="350" width="14" height="10" fill="#9aa5b1" stroke="none" rx="1"/>
+<text x="350" y="359" text-anchor="start" font-size="11" fill="#546e7a" font-weight="normal" font-style="normal">P-site off-frame</text>
+<rect x="470" y="348" width="3" height="14" fill="#263238" stroke="none"/>
+<text x="480" y="359" text-anchor="start" font-size="11" fill="#546e7a" font-weight="normal" font-style="normal">5′ end</text>
+</svg>
