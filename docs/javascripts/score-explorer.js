@@ -103,6 +103,9 @@
     t.textContent = s;
     return t;
   }
+  // Drawing width in SVG units: 720, scaled to the column; on a narrow column (a phone), the column's width in px
+  // (at least 300), so that labels keep their size.
+  const layoutWidth = (box) => (box.clientWidth < 600 ? Math.max(300, Math.round(box.clientWidth)) : 720);
   const fmtP = (x) => (x >= 0.01 ? x.toFixed(2) : x.toExponential(1));
 
   function init() {
@@ -131,8 +134,8 @@
     root.appendChild(controls);
     const q = (k) => controls.querySelector(`[data-k="${k}"]`);
 
-    const W = 720, H = 250;
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img",
+    let W = layoutWidth(controls);
+    const svg = el("svg", { role: "img",
                             "aria-label": "Reads per codon and frame of a simulated ORF, and the codons that lead" }, root);
     const readout = document.createElement("p");
     readout.className = "rk-readout";
@@ -159,19 +162,22 @@
       root.rk = { params: p, counts, score: s };
       while (svg.firstChild) svg.removeChild(svg.firstChild);
 
-      // Legend.
-      el("rect", { x: 40, y: 10, width: 14, height: 10, fill: C.f0, rx: 1 }, svg);
-      label(svg, 60, 19, "frame 0 (the ORF's)", { "text-anchor": "start", "font-size": 11, fill: C.muted });
-      el("rect", { x: 190, y: 10, width: 14, height: 10, fill: C.off, rx: 1 }, svg);
-      label(svg, 210, 19, "frame 1 / frame 2", { "text-anchor": "start", "font-size": 11, fill: C.muted });
-      label(svg, 330, 19, "✓ leads", { "text-anchor": "start", "font-size": 11, fill: C.f0 });
+      // Legend: one row; narrow, "✓ leads" on a second row, and the chart 16 lower.
+      const narrow = W < 720, [l0, l1, lx, ly] = narrow ? [0, 140, 0, 35] : [40, 190, 330, 19], dy = narrow ? 16 : 0;
+      svg.setAttribute("viewBox", `0 0 ${W} ${250 + dy}`);
+      el("rect", { x: l0, y: 10, width: 14, height: 10, fill: C.f0, rx: 1 }, svg);
+      label(svg, l0 + 20, 19, "frame 0 (the ORF's)", { "text-anchor": "start", "font-size": 11, fill: C.muted });
+      el("rect", { x: l1, y: 10, width: 14, height: 10, fill: C.off, rx: 1 }, svg);
+      label(svg, l1 + 20, 19, "frame 1 / frame 2", { "text-anchor": "start", "font-size": 11, fill: C.muted });
+      label(svg, lx, ly, "✓ leads", { "text-anchor": "start", "font-size": 11, fill: C.f0 });
 
-      const x0 = 40, cw = 660 / p.codons, bw = Math.min(cw / 3.4, 10), base = 190, ph = 140;
+      const x0 = 40, cw = (W - x0 - 20) / p.codons, bw = Math.min(cw / 3.4, 10), base = 190 + dy, ph = 140;
       const ymax = Math.max(4, ...counts.map((c) => Math.max(...c)));
       if (p.overlap > 0) {
         const xs = x0 + (p.codons - p.overlap) * cw;
         el("rect", { x: xs, y: base - ph - 6, width: p.overlap * cw, height: ph + 6, fill: C.cds, opacity: 0.12 }, svg);
-        label(svg, xs + (p.overlap * cw) / 2, base - ph - 10, "inside the host CDS", { "font-size": 11, fill: C.muted });
+        label(svg, Math.min(xs + (p.overlap * cw) / 2, W - 60), base - ph - 10, "inside the host CDS",
+              { "font-size": 11, fill: C.muted });
       }
       el("line", { x1: x0, x2: x0 + p.codons * cw, y1: base, y2: base, stroke: C.axis }, svg);
       counts.forEach((c, j) => {
@@ -180,7 +186,7 @@
           const h = (n / ymax) * ph;
           el("rect", { x: cx + (f - 1.5) * bw, y: base - h, width: bw - 0.6, height: h, fill: f === 0 ? C.f0 : C.off }, svg);
         });
-        if (c[0] > Math.max(c[1], c[2])) label(svg, cx, base + 14, "✓", { "font-size": 11, fill: C.f0 });
+        if (c[0] > Math.max(c[1], c[2])) label(svg, cx, base + 14, "✓", { "font-size": Math.min(11, cw * 1.25), fill: C.f0 });
         if ((j + 1) % 5 === 0 || p.codons <= 15) label(svg, cx, base + 28, String(j + 1), { "font-size": 10, fill: C.muted });
       });
       label(svg, x0 - 6, base + 28, "codon", { "font-size": 10, fill: C.muted, "text-anchor": "end" });
@@ -206,6 +212,8 @@
       if (e.target.dataset && e.target.dataset.act === "draw") { seed += 1; draw(); }
     });
     draw();
+    if (typeof ResizeObserver !== "undefined")
+      new ResizeObserver(() => { const w = layoutWidth(controls); if (w !== W) { W = w; draw(); } }).observe(root);
   }
 
   if (typeof document$ !== "undefined") document$.subscribe(init);
