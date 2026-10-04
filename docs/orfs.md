@@ -572,6 +572,13 @@ transcripts with CDSs, each carrying ORFs that exercise one design decision:
 - **P1**: a transcript with no CDS that happens to share 240 nt of sequence
   with U1's CDS (pseudogene-like).
 
+<figure markdown="span">
+  ![The seven synthetic transcripts to scale: U1 with a translated uORF, an untranslated candidate and a CTG ORF with reads on its start codon, then its CDS; U2-U5 with a uoORF over their CDS start; N1 with an ORF and no CDS; P1, with no CDS, holding 240 nt of U1's CDS](img/orf_dataset.svg)
+  <figcaption>The worked example's transcripts, to scale, with the reads drawn from each ORF in the
+  counts run. A dashed ORF is not translated. P1 has no CDS; the outlined 240 nt are the same as
+  the bracketed part of U1's CDS, so reads there fit both.</figcaption>
+</figure>
+
 **Counts** (`ribokit orfs`, truth vs. `NumReads`):
 
 | ORF | type | truth | got |
