@@ -261,6 +261,23 @@ and 0.21 for the CDS, so the uoORF gets 93%. To take a read in the CDS's
 frame 0, the uoORF has to be much denser: at 10 times the CDS's density it
 gets 25%.
 
+**Try it.** A uoORF in frame 1 of its CDS, as U4 in the
+[worked example](#worked-example): its own part upstream of the CDS (90 nt),
+the overlap (90 nt) and the CDS's own part (180 nt). Set the two densities,
+the frame-0 share $\pi_0$ (the rest split evenly between frames 1 and 2), and
+how many reads of the CDS's start peak fall in the uoORF's own part. The EM
+sees the reads per region, and the overlap's reads by frame:
+
+<div class="rk-widget" id="em-explorer-frame"><noscript>This interactive example needs JavaScript.</noscript></div>
+
+*Things to try:* with no start-peak reads, the frame term changes nothing:
+density alone splits the overlap right. With the defaults (the uoORF not
+translated, 40 start-peak reads), density alone gives the uoORF 71 reads;
+the frame term returns most of the overlap's reads to the CDS and leaves 49,
+the 40 start-peak reads and most of the CDS's frame-1 reads
+([Known limits](#known-limits)). Move $\pi_0$ toward 1/3, and the frame term
+fades.
+
 ## 5. The codon lead score
 
 `ribokit orfs` writes `codons.tsv`: P-sites per codon of every ORF but the
