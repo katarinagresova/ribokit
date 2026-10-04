@@ -693,6 +693,27 @@ with a power of at least 0.8, 45 were called. The 55 others had
 fewer leading codons (a median of 0.60 of the codons with reads, against
 0.87) and a lower in-frame share (0.74 against 0.86).
 
+### Calls and depth
+
+The same catalogue, scored on the 6 libraries and on the 15 (both at 27-28
+nt):
+
+| | 6 libraries | 15 libraries |
+|---|---:|---:|
+| p cut (largest `p` with q < 0.05) | 0.0026 | 0.0092 |
+| Votes needed, all leading | 6 | 5 |
+| uORFs with no reads (of 1,683) | 510 | 220 |
+| uORF reads, median | 2 | 12 |
+| uORFs that cannot be called | 1,472 | 967 |
+| uORFs called | 66 | 310 |
+| uoORFs called (of 59) | 31 | 46 |
+| Decoys at the cut (of 3,425) | 0 | 3 |
+| Empirical FDR at the cut | 0 | 0.004 |
+
+With 2.5 times the libraries, the score called 4.7 times the uORFs, and the
+decoys stayed below the FDR. 91 of the 97 calls of the 6 libraries were also
+calls of the 15; the other 6 had a median `q` of 0.10 there.
+
 ## Determinism
 
 As for `quant`: no random numbers anywhere, ties go to the smallest tie-break,
