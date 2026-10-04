@@ -308,8 +308,8 @@ with one `--orfs-prefix`. The runs must share one ORF table: if their
 - **The null.** For a codon that is not translated, each of its 3 positions is
   weighted by its expected reads from the EM: the ORF's own density as a
   frame-less background, plus, inside the host CDS, the CDS's density times
-  $3\,\pi_l(\text{that position's frame in the CDS})$ — the same frame term the
-  EM uses. This gives the null frame probabilities $q$ per read length and
+  $3\,\pi_l(\phi)$, with $\phi$ that position's frame in the CDS — the same
+  frame term the EM uses. This gives the null frame probabilities $q$ per read length and
   library; a codon's $q$ mixes them, weighted by its reads of each. Outside any
   CDS overlap $q = (1/3, 1/3, 1/3)$, but inside one, the host CDS's own frame bleed
   raises or lowers the untranslated odds of a lead.
