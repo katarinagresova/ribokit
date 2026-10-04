@@ -29,7 +29,7 @@ flowchart TB
     given[/"or: offsets from another run"/] -.-> assign
     assign --> ec["5 · Equivalence classes: reads grouped by compatible CDSs"]
     ec --> em["6 · EM: expected reads per CDS"]
-    em --> out[/"quant.tsv · offsets.tsv · ties.tsv · stats.tsv"/]
+    em --> out[/"quant.tsv · offsets.tsv · ties.tsv · stats.tsv · psites.tsv"/]
 ```
 
 | Problem | What ribokit does |
@@ -331,6 +331,7 @@ Each file is written as `<prefix>.<name>`, with the prefix from `--out-prefix`:
 | `offsets.tsv` | The offsets, with support and $z$ ([step 3](#what-offsetstsv-reports)). |
 | `ties.tsv` | CDSs that no read tells apart. |
 | `stats.tsv` | Reads left after each filter, EM steps and log-likelihood. |
+| `psites.tsv` | `read Name psite length`, one row per alignment whose P-site is in a CDS ([step 4](#4-assignment)): `psite` is the 0-based transcript position of the P-site's first nt, always the first nt of a codon of the CDS, and `length` is the footprint length. A read with several such alignments has a row for each. |
 
 `NumReads` sums to `reads_assigned`. `ritpm` is the density, scaled to sum to
 one million:
