@@ -210,12 +210,15 @@ transcripts with CDSs, each carrying ORFs that exercise one design decision:
 The uoORF/CDS pairs split their shared reads by frame as well as by density:
 U2's uoORF and its CDS recover their combined truth within 0.3%, and their
 share of it within 2 percentage points; U3's (frame 2) do the same. U4's
-untranslated uoORF is not free of reads, though: its leader part overlaps its
-CDS's start-codon peak, and footprints 1-2 nt short at the 5′ end put their
-P-site there in U4's frame. The frame term returns most, not all, of this
-overlap's reads to the CDS — a known limit of the model, not a bug: a peak
-right at an ORF boundary is the one place a few nucleotides of 5′ trimming can
-still cross a frame.
+untranslated uoORF is not free of reads, though. Its CDS's start-codon peak
+holds footprints 1-2 nt long at the 5′ end, which put their P-site 1-2 nt
+upstream of the CDS start: in the uoORF's leader part, where the uoORF is the
+only component. With that density, the EM takes the uoORF for translated and
+gives it a share of the overlap as well — 129 reads in all by density alone.
+The frame term returns about a quarter of them to the CDS, leaving 99, but not
+the rest: the peak reads have nowhere else to go, and the CDS's reads in its
+frame 1 are in the uoORF's frame 0. This is a known limit of the model, not a
+bug; the score below still does not call U4's uoORF.
 
 **Scores** (`ribokit score`, pooled over one library, with background reads
 also landing inside every ORF span — a harder setting than the counts example
