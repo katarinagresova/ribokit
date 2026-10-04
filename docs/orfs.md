@@ -182,6 +182,19 @@ no P-sites, so its reads are not counted, as in `quant`. Nor is an alignment
 whose P-site lands past its transcript's end, which a long 3′ soft clip can
 cause (`alignments_psite_off_transcript` in `stats.tsv`).
 
+**Where off-frame reads come from.** Footprints of one length do not all start
+on the same nucleotide of a codon: trimming leaves a nucleotide more or less
+at the 5′ end, and the opposite at the 3′ end (the phases of
+[Method, step 3](method.md#offsets-phases-and-the-codon-frame)). With one
+offset per length, a CDS footprint trimmed one nucleotide more at the 5′ end
+(phase 1) puts its P-site one nucleotide downstream, in frame 1 of the CDS;
+one trimmed a nucleotide less (phase 2) puts it one nucleotide upstream, in
+frame 2. `quant` gives each phase its own offset and so moves these P-sites
+back to frame 0; `orfs` leaves them where they fall. Thus even a CDS,
+translated in frame 0 only, has reads in its frames 1 and 2. In 6 human
+libraries, 90-95% of the 27-28 nt reads inside CDSs were in frame 0, but
+only 41-81% at the other lengths of 18-30 nt.
+
 How often a read length's P-sites, placed this way, land in frame 0/1/2 of a
 CDS is that length's **frame profile**, $\pi_l(f)$. It is measured from reads
 at least 15 nt inside a CDS at both ends (no start or stop peaks), weighted
@@ -192,6 +205,11 @@ at least 15 nt inside a CDS at both ends (no start or stop peaks), weighted
 frame, $\pi_l(f) = (n_f + 1)/(n + 3)$ for $n$ interior reads: no frame then
 has probability 0, and a length without interior reads gets 1/3 in each frame,
 i.e. no frame information.
+
+Frames in `frames.tsv` are the CDS's. In `codons.tsv` and in the score they
+are the ORF's own, counted from its start codon, so frame 0 is the ORF's
+reading frame. For a uoORF in frame 1 of its CDS, the CDS's frame-0 reads
+are in the uoORF's frame 2.
 
 !!! tip "Reusing offsets"
     As with `quant`, `--offsets <prefix>.offsets.tsv` reuses another run's
