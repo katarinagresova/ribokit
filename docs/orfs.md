@@ -176,7 +176,7 @@ i.e. no frame information.
     As with `quant`, `--offsets <prefix>.offsets.tsv` reuses another run's
     table. Comparisons across libraries should use one shared table, since the
     phase-0 offset of the shorter read lengths can otherwise differ between
-    libraries.
+    libraries ([Typical workflow](#typical-workflow)).
 
 ## 4. EM with a frame term
 
@@ -355,6 +355,65 @@ the 15 (empirical FDR 0.004).
 more codons with reads, up to the ORF's `codons`, and a translated codon with
 more reads leads more often, but no pool gives an ORF more votes than it has
 codons. With 15 libraries instead of 6, uORF calls went from 66 to 310.
+
+## Typical workflow
+
+For a comparison of two conditions with several libraries each:
+
+```bash
+# one library without --offsets: its offsets.tsv becomes the shared table
+ribokit orfs --bam ctrl_1.bam --gtf annotation.gtf --fasta genome.fa \
+    --read-lengths 18-30 --orfs candidates.tsv --out-prefix out/ctrl_1
+# every other library with the same GTF, ORF table and offsets
+for s in ctrl_2 ctrl_3 treat_1 treat_2 treat_3; do
+    ribokit orfs --bam $s.bam --gtf annotation.gtf --fasta genome.fa \
+        --read-lengths 18-30 --orfs candidates.tsv \
+        --offsets out/ctrl_1.offsets.tsv --out-prefix out/$s
+done
+# one score over every library, both conditions
+ribokit score --orfs-prefix out/ctrl_{1,2,3} out/treat_{1,2,3} --out-prefix out/all
+```
+
+1. **One GTF, one ORF table and one offsets table for every library.**
+   `score` needs the same ORF rows in every run, and the annotated CDSs come
+   from the GTF. To leave transcripts out of some libraries only, remove their
+   alignments from those libraries' BAMs, not the transcripts from the GTF:
+   the other transcripts get the same counts either way
+   ([step 2](#2-outside-components)), and the ORF rows stay the same. The
+   phase-0 offset of short read lengths can differ between libraries (from 3
+   to 12 nt at 18-24 nt, in 6 libraries of one experiment). Different
+   offsets move reads across the ends of short ORFs differently in each
+   library: a difference between conditions that is not biological. Take the
+   table from one library, e.g. the deepest, as above.
+2. **Check each library's `frames.tsv` and `stats.tsv`.** With a shared table,
+   `offset` is the same in every library; `frame0` shows how sharp each
+   length's frame is. By default `score` uses the lengths with `frame0` at
+   least 0.9 in every library, so one library with a weaker frame can leave
+   no length; `score` then stops, and `--frame-lengths` gives the lengths
+   that are sharpest in all libraries. `stats.tsv` counts what each step
+   dropped.
+3. **Score once, over every library of the comparison, both conditions.**
+   The calls then do not depend on the condition labels. Scoring one
+   condition and testing its calls between conditions would favour ORFs with
+   more reads in that condition. A larger pool also gives more calls
+   ([Reading the results](#reading-the-results)).
+4. **Counts for the tests.** `NumReads` in each library's `orfs.tsv` are the
+   counts for a differential test between conditions, e.g. of a uORF's reads
+   relative to its CDS's. They count every read length in `--read-lengths`
+   that has an offset, not only the score lengths. `scores.tsv` sorts the
+   ORFs into called, not called and cannot be called
+   ([Reading the results](#reading-the-results));
+   sum nested ORFs first ([Known limits](#known-limits)).
+5. **CDS counts.** `orfs.tsv` has the annotated CDSs too, but by design their
+   counts differ a little from `quant`'s: outside components and the frame
+   term move some reads between a CDS and the components around it. In 6
+   human libraries, for CDSs with at least 10 reads, the median
+   log2(`orfs` / `quant`) was 0, the 99th percentile of its absolute value
+   0.12-0.16, and the totals were 0.4-0.7% lower. For CDS quantification, use
+   `quant`.
+
+On human libraries, `orfs` took 24-132 s and at most 3.4 GB per library,
+and `score` 10-25 s and 0.2-0.3 GB for 6-15 libraries.
 
 ## Known limits
 
