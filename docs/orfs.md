@@ -103,13 +103,16 @@ P(\text{read} \mid k) = \frac{3\,\pi_{l}(\phi)}{L_k}, \qquad
 P(\text{read} \mid \text{outside component}) = \frac{1}{L}
 $$
 
-The factor of 3 keeps $\sum_f \pi_l(f) \cdot 3 / 3 = 1$ so that a read with no
-frame information at all ($\pi_l$ flat at 1/3) reduces to `quant`'s plain
-$1/L_k$. When every component a read is compatible with puts it in the same
-frame, the frame terms cancel and this is exactly `quant`'s model; it only
-matters where components disagree on frame, e.g. a uORF or uoORF sharing reads
-with its host CDS. Components that no read's frame or density tells apart are
-listed in `ties.tsv`, as in `quant`.
+The factor of 3 gives the frame term a mean of 1 over the three frames,
+$\tfrac{1}{3}\sum_f 3\,\pi_l(f) = 1$, so a read length with no frame
+information ($\pi_l$ flat at 1/3) reduces to `quant`'s plain $1/L_k$. When
+every component a read is compatible with is an ORF that puts it in the same
+frame, the frame terms cancel and this is exactly `quant`'s model. The term
+matters where ORFs disagree on frame, e.g. a uoORF sharing reads with its host
+CDS, and against outside components, which have no frame term: there a read in
+an ORF's frame 0 leans toward the ORF, an off-frame read toward the outside
+component. Components that no read's frame or density tells apart are listed
+in `ties.tsv`, as in `quant`.
 
 ## 5. The codon lead score
 
