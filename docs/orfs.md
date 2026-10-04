@@ -61,12 +61,12 @@ many of its codons, show that ribosomes elongate through it.
 
 A real case, from libraries of a human cell line: one CUG in GAPDH's leader
 holds as many P-sites as GAPDH's AUG start codon, so a span count makes the
-ORF that starts at this CUG look well translated. But only 1-2% of the reads
-after the CUG are in that ORF's frame — the rest follow GAPDH's CDS, which the
-ORF overlaps — and harringtonine, which holds ribosomes at start codons
-([Ingolia et al. 2011](#references)), raises the AUG peak but not the CUG's:
-with it, the AUG has 11-19x the CUG's P-sites, without it about as many
-([A peak is not a uORF](#a-peak-is-not-a-uorf)).
+ORF that starts at this CUG look well translated. But only 1.4-2.4% of the
+reads after the CUG are in that ORF's frame — the rest follow GAPDH's CDS,
+which the ORF overlaps — and harringtonine, which holds ribosomes at start
+codons ([Ingolia et al. 2011](#references)), raises the AUG peak but not the
+CUG's: with it, the AUG has 11-19x the CUG's P-sites, without it about as
+many ([A peak is not a uORF](#a-peak-is-not-a-uorf)).
 
 **What ribokit does and does not do.** ribokit does not find ORFs. It takes a
 catalogue (`--orfs`) — from an ORF caller such as RiboTaper
