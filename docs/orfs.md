@@ -192,9 +192,9 @@ offset per length, a CDS footprint trimmed one nucleotide more at the 5′ end
 one trimmed a nucleotide less (phase 2) puts it one nucleotide upstream, in
 frame 2. `quant` gives each phase its own offset and so moves these P-sites
 back to frame 0; `orfs` leaves them where they fall. Thus even a CDS,
-translated in frame 0 only, has reads in its frames 1 and 2. In 6 human
-libraries, 90-95% of the 27-28 nt reads inside CDSs were in frame 0, but
-only 41-81% at the other lengths of 18-30 nt.
+translated in frame 0 only, has reads in its frames 1 and 2: its frame
+bleed. In 6 human libraries, 90-95% of the 27-28 nt reads inside CDSs were
+in frame 0, but only 41-81% at the other lengths of 18-30 nt.
 
 <figure markdown="span">
   ![Three 29 nt footprints of ribosomes on one codon, with their 5′ ends on codon nt 0, 1 and 2: quant's offsets 12, 11 and 13 put all three P-sites on nt 0 of the codon; orfs' offset 12 puts them in frames 0, 1 and 2](img/offframe.svg)
