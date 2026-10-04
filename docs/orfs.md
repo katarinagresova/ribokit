@@ -823,6 +823,9 @@ step, toward `orfs`. Totals over the 6 libraries, relative to the span count:
 As for `quant`: no random numbers anywhere, ties go to the smallest tie-break,
 and a rerun — of `orfs` or of `score` — gives byte-identical output. Pooling a
 library with itself in `score` doubles `reads` and leaves `leads` unchanged.
+On the 6 real libraries, a rerun of `orfs` and of `score` was byte-identical,
+and `quant`'s outputs were the same before and after `orfs` and `score` were
+added. Time and memory: [Typical workflow](#typical-workflow).
 
 ## References
 
