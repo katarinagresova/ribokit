@@ -104,7 +104,7 @@ flowchart TB
 | A footprint that merely overlaps an ORF's span was not necessarily made by a ribosome translating it. | Counts a codon as evidence only if ribosomes keep landing in that ORF's own reading frame ([step 5](#5-the-codon-lead-score)). |
 | ORFs overlap: a uoORF sits over a CDS's start out of frame; several candidates can share a stop. | Splits shared reads by an EM with a frame term: where two ORFs put a read in different frames, as a uoORF and its CDS do, it goes by frame as well as by density ([step 4](#4-em-with-a-frame-term)). ORFs that share a stop share a frame, so their reads go by density alone ([Known limits](#known-limits)). |
 | Short ORFs, and ORFs with few reads, cannot tell translated from not. | Reports `min_p`: the best score the ORF's length and read depth could ever reach, next to its actual score ([Reading the results](#reading-the-results)). |
-| A host CDS's own off-frame "noise" can look like translation in an ORF that overlaps it. | The null mixes in the host CDS's own frame profile where they overlap, instead of assuming an even 1/3 ([step 5](#5-the-codon-lead-score)). |
+| A host CDS's own off-frame "noise" can look like translation in an ORF that overlaps it. | Where they overlap, the null adds the host CDS's reads, spread over the frames by the frame profile of all CDSs, instead of assuming an even 1/3 ([step 5](#5-the-codon-lead-score)). |
 
 ## 1. The ORF table
 
