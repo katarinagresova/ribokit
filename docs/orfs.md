@@ -158,9 +158,11 @@ with one `--orfs-prefix`.
   what was actually observed. A short ORF, or one with few reads, can have a
   large `min_p` even when every vote it got was a lead.
 - **Decoys.** Each ORF shifted by +1 and +2 nt, scored the same way with the
-  ORF's own density as background, for null calibration. A shifted copy is
-  left out where it falls in the host CDS's own frame (a uORF's shifted copies
-  never do; an ORF nested just inside a CDS can).
+  ORF's own density as background, for null calibration. A shifted copy that
+  overlaps the host CDS in the CDS's own frame is left out, since there it
+  would read the CDS's translated codons. Every uoORF loses exactly one of its
+  two copies this way (the shift that puts it in the CDS's frame), as does an
+  out-of-frame ORF inside a CDS; a uORF's copies never do.
 
 ## 6. Outputs
 
