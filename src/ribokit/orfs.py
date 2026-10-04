@@ -12,6 +12,8 @@ Components. The ORFs are the ORF table's plus the annotated CDSs. Every position
 a transcript that is in no ORF belongs to one outside component: the leader (5' of
 the annotated CDS), the trailer (3' of it, its stop codon included), or the whole
 transcript if it has no CDS. So every read with a P-site is counted somewhere.
+Alignments to BAM references that are not transcripts of the GTF are dropped: a
+read tied between such a reference and a GTF transcript counts for the latter.
 
 EM. A read is compatible with each component that holds one of its P-sites.
 P(read | ORF k) = 3 pi_l(phi) / L_k with phi = (P-site - start_k) mod 3, and
@@ -167,6 +169,17 @@ def run(bam_path, gtf, fasta, lengths, out_prefix, orfs_path=None, offsets_path=
     aln = bam.read_bam(bam_path, anno, stats)
     with pysam.AlignmentFile(bam_path, "rb", check_sq=False) as f:
         ref_len = np.array(f.lengths, dtype=np.int64)
+    # BAM references that are not GTF transcripts are not counted. Dropped before anything counts a
+    # read's alignments (read_weights), so this is the run on a BAM without them.
+    gtf_ids = set(annotation.read_gtf(gtf))
+    in_gtf = np.array([r in gtf_ids for r in aln.refs], dtype=bool)
+    keep = in_gtf[aln.ref]
+    stats.update(refs_not_in_gtf=int((~in_gtf).sum()), alignments_dropped_ref_not_in_gtf=int((~keep).sum()))
+    aln = aln.subset(keep)
+    stats["reads_dropped_ref_not_in_gtf"] = stats["reads_cigar_ok"] - aln.count_reads()
+    log.info("%d BAM references are not in the GTF: %d alignments dropped, %d reads with no other",
+             stats["refs_not_in_gtf"], stats["alignments_dropped_ref_not_in_gtf"],
+             stats["reads_dropped_ref_not_in_gtf"])
     orfs = orf_table(orfs_path, gtf, fasta, anno, dict(zip(aln.refs, ref_len.tolist())), stats)
 
     lo, hi = lengths
@@ -192,7 +205,7 @@ def run(bam_path, gtf, fasta, lengths, out_prefix, orfs_path=None, offsets_path=
     log.info("frame profiles:\n%s", frames.to_string(index=False))
 
     # components: the ORFs, then the outside components
-    outside = outside_components(orfs, anno, aln.refs, ref_len)
+    outside = outside_components(orfs, anno, [r for r, k in zip(aln.refs, in_gtf) if k], ref_len[in_gtf])
     comps = pd.concat([orfs.assign(Length=orfs["end"] - orfs["start"]), outside], ignore_index=True)
     n_orf = len(orfs)
     ref_index = {r: i for i, r in enumerate(aln.refs)}

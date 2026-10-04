@@ -90,6 +90,7 @@ same convention as the CDS). The annotated CDSs are added automatically.
 6. **ORF table.** uORFs, uoORFs and other ORFs besides the CDS, in transcript
    coordinates; dropped if not a multiple of 3 or no stop follows. Positions
    in no ORF form per-transcript leader/trailer/whole-transcript components.
+   Alignments to BAM references that are not in the GTF are dropped.
 7. **Frame-true P-sites.** One offset per read length (no phase snapping), so
    every P-site keeps its reading frame, plus a per-length frame profile from
    CDS interiors.

@@ -67,6 +67,14 @@ it, its stop codon included), or `<transcript>:transcript` if it has no
 annotated CDS at all. Empty components (no free positions) are left out.
 Outside components carry no frame term ([step 4](#4-em-with-a-frame-term)).
 
+Only transcripts of the GTF are counted. Alignments to BAM references that are
+not in the GTF are dropped before any other step, so the run is the same as on
+a BAM without those references: a read that also aligns to a GTF transcript
+counts there, a read with no other alignment is lost. To leave transcripts out
+of a run, leave them out of the GTF. `stats.tsv` counts what was dropped
+(`refs_not_in_gtf`, `alignments_dropped_ref_not_in_gtf`,
+`reads_dropped_ref_not_in_gtf`).
+
 ## 3. Frame-true P-sites and the frame profile
 
 `quant`'s offsets snap every alignment onto a codon of its CDS, by design
@@ -190,7 +198,7 @@ Each file is written as `<prefix>.<name>`:
 | `frames.tsv` | Per read length: `offset` (the phase-0 offset), `reads`, `frame0 frame1 frame2`. |
 | `codons.tsv` | `ORF_id codon length frame0 frame1 frame2`: P-sites per codon, length and frame, for every ORF but the annotated CDSs — `score`'s input. `codon` counts from 0, the start codon, up to and including the stop codon, which the decoys reach into. Frames are relative to the ORF's start, not to the CDS as in `frames.tsv`. Only codons and lengths with P-sites have a row. Each alignment counts 1: a read that aligns to several transcripts counts once on each, not 1/(number of alignments). |
 | `ties.tsv`, `stats.tsv` | As for `quant`, but over every ORF and outside component. |
-| `psites.tsv` | `read Name psite length`, one row per alignment with a P-site — every alignment in the length window, not only those assigned to a CDS. |
+| `psites.tsv` | `read Name psite length`, one row per alignment with a P-site — every alignment in the length window on a GTF transcript, not only those assigned to a CDS. |
 | `scores.tsv` | One row per scored ORF: `ORF_id Name type start end codons codons_with_reads reads in_frame_share leads expected z p min_p q`. |
 | `decoys.tsv` | The same columns plus `shift` (1 or 2 nt), without `q`. `ORF_id`, `Name` and `type` are the original ORF's; `start` and `end` are the shifted copy's. |
 | `score_stats.tsv` | `libraries`, `frame_lengths` (the score lengths), `orfs_scored`, `decoys_scored`, and `decoys_left_out_cds_frame` (the shifted copies left out in the CDS's frame, see [Decoys](#5-the-codon-lead-score)). |
