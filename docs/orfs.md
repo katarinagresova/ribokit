@@ -604,6 +604,26 @@ if every one led) is tiny — 1e-29 and 1e-26 — but their actual `p` is 0.12 a
 codons actually lead. `min_p` is how ribokit reports that gap between
 "could be called" and "was called", instead of leaving it silent.
 
+## Validation on real data
+
+What `orfs` and `score` do on real Ribo-seq libraries, as numbers. The data
+are not shipped with ribokit; the numbers come from its validation runs.
+
+### The data
+
+- **6 libraries** of a human cell line: 2 conditions × 3 replicates. Read
+  lengths 18-30 nt; score lengths 27-28 nt, the only lengths with a frame-0
+  share of at least 0.9 in every library.
+- **15 libraries** of one condition of the same cell line, from 5
+  experiments of 3 replicates each (3 of them are also among the 6).
+- **6 harringtonine libraries**, one for each of the 6 libraries (same
+  condition and replicate), for the start peaks.
+- **The catalogue**: 1,741 ORFs that RiboTIE ([Clauwaert et al.
+  2025](#references)) called in at least 3 of the 15 libraries: 1,683 uORFs
+  and 58 uoORFs, with ATG starts 1,051, CTG 416, GTG 150 and TTG 124, and a
+  median length of 30 nt. Added to it: the ORF that starts at GAPDH's CUG
+  ([Background](#background)), a uoORF, so 59 uoORFs in all.
+
 ## Determinism
 
 As for `quant`: no random numbers anywhere, ties go to the smallest tie-break,
