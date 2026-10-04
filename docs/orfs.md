@@ -356,6 +356,56 @@ more codons with reads, up to the ORF's `codons`, and a translated codon with
 more reads leads more often, but no pool gives an ORF more votes than it has
 codons. With 15 libraries instead of 6, uORF calls went from 66 to 310.
 
+## Known limits
+
+- **Nested ORFs.** ORFs with the same stop (the same `Name` and `end`) are in
+  the same frame: each longer one is an in-frame N-terminal extension of the
+  shorter. On their shared codons the frame terms cancel
+  ([step 4](#4-em-with-a-frame-term)), so the EM splits the shared reads by
+  density alone, and often one ORF of the group gets all of them. The score
+  can call the longer ORF on the shared codons alone
+  ([Reading the results](#reading-the-results)). Sum the counts of a group, or
+  report it as one unit. In a real catalogue of 1,741 ORFs from an ORF caller,
+  310 ORFs are in 148 such groups; against a count that gives the shared reads
+  to every ORF of a group, the nested uORFs kept 0.53 of their reads, the
+  other uORFs 0.94.
+- **A CDS start peak spills into an overlapping uoORF.** Reads of the CDS's
+  start-codon peak that put their P-site 1-2 nt upstream of the start codon
+  land in the uoORF's part upstream of the CDS, where the uoORF is the only
+  component. The EM counts them for the uoORF, and the frame term returns only
+  some of them ([worked example](#worked-example), U4). The score gives the
+  peak one vote, so it does not call such a uoORF, but its count holds part of
+  the peak.
+- **Inside a CDS, the null is anti-conservative in the far tail.** The null
+  uses the frame profile of all CDSs ([step 5](#5-the-codon-lead-score)), and
+  CDSs differ in how many of their reads fall in their off-frames. This
+  concerns uoORFs and other ORFs inside a CDS, at small `p`. On real data, in
+  10-codon windows in the off-frames of CDSs, p ≤ 0.001 came up 5-6x as often
+  as expected (p ≤ 0.05: 1.3-1.4x). Each CDS's own frame profile would halve
+  the excess at p ≤ 0.001; part of the rest can be translation in the
+  off-frames.
+- **uoORFs that stop after the CDS stop.** A uoORF starts upstream of the CDS,
+  out of frame, and ends in the CDS or after it
+  ([step 1](#1-the-orf-table)). One that ends after the CDS stop contains the
+  whole CDS, which is often a sign that the annotated CDS stops too early.
+  Find them by their `end` against the `end` of their transcript's CDS row in
+  `orfs.tsv`, and check them before a uORF analysis. In a real catalogue, 2 of
+  59 uoORFs stop after the CDS stop, both on transcripts whose annotated CDS
+  stops early.
+- **Starts and stops made by a variant.** The start codon is not checked
+  ([step 1](#1-the-orf-table)), so an ORF whose start codon comes from a
+  variant in the sample is kept. The stop codon is checked against the genome
+  FASTA, so an ORF whose stop codon comes from a variant is dropped
+  (`orfs_dropped_no_stop` in `stats.tsv`).
+- **Short ORFs.** Outside a CDS overlap, an ORF of 5 codons or fewer has at
+  most 4 votes, so its `min_p` is at least 0.012: it cannot reach p < 0.01 at
+  any depth ([Reading the results](#reading-the-results)).
+- **Transcript ends.** A P-site is seen only if its whole footprint lies on
+  the transcript, so a transcript's first nt, up to the offset, and its last
+  few codons get fewer P-sites than its middle. The EM uses each component's
+  full length, so a leader, a trailer or an ORF near a transcript end gets a
+  density a little too low.
+
 ## Worked example
 
 ribokit's ORF tests (`tests/synth.py`, `make_orf_dataset`) build five
