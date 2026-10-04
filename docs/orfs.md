@@ -102,7 +102,7 @@ flowchart TB
 | A footprint's P-site offset depends on its length and phase; snapping every phase onto the CDS (as `quant` does) erases any other reading frame a read might be in. | Uses one offset per read length (the untrimmed phase), so every P-site keeps the frame it was sequenced in ([step 3](#3-frame-true-p-sites-and-the-frame-profile)). |
 | A footprint that merely overlaps an ORF's span was not necessarily made by a ribosome translating it. | Counts a codon as evidence only if ribosomes keep landing in that ORF's own reading frame ([step 5](#5-the-codon-lead-score)). |
 | ORFs overlap: a uORF can sit over a CDS's start out of frame; several candidates can share a stop. | Splits shared reads by an EM with a frame term, so reads go by frame as well as by density, not to whichever ORF is denser ([step 4](#4-em-with-a-frame-term)). |
-| Short ORFs, and ORFs with few reads, cannot tell translated from not. | Reports `min_p`: the best score the ORF's length and read depth could ever reach, next to its actual score. |
+| Short ORFs, and ORFs with few reads, cannot tell translated from not. | Reports `min_p`: the best score the ORF's length and read depth could ever reach, next to its actual score ([Reading the results](#reading-the-results)). |
 | A host CDS's own off-frame "noise" can look like translation in an ORF that overlaps it. | The null mixes in the host CDS's own frame profile where they overlap, instead of assuming an even 1/3 ([step 5](#5-the-codon-lead-score)). |
 
 ## 1. The ORF table
@@ -289,6 +289,72 @@ The columns of `scores.tsv`:
 - `z`, `p`, `min_p`: as in [step 5](#5-the-codon-lead-score). An ORF without
   votes has `z` = `NA`, `p` = 1 and `min_p` = 1.
 - `q`: Benjamini-Hochberg over every row, ORFs without votes included.
+
+## Reading the results
+
+A cut on `q`, e.g. 0.05, gives the calls. Benjamini-Hochberg turns it into a
+**p cut**: the largest `p` among the ORFs with `q` below the q cut. (If no ORF
+is called, the p cut that a single call would need is the q cut divided by
+`orfs_scored`.) With the p cut, `min_p` sorts every ORF into one of three
+groups:
+
+| Group | Rule | Meaning |
+|---|---|---|
+| called | `q` below the q cut | Ribosomes elongate in the ORF's frame. |
+| not called | `p` above the p cut, `min_p` at or below it | The ORF had enough votes to pass, but too few of them led. |
+| cannot be called | `min_p` above the p cut | Too few codons with reads: the ORF would not pass even if every one led. |
+
+**"Not called" does not mean "not translated".** Translated codons lead
+nearly every time they have reads: 0.89-0.96 of them in CDS windows downsampled
+to uORF depth (real data, 6 human libraries). What limits the calls is how many
+codons have reads. With a median of 2 score-length reads per uORF, 1,472 of a
+catalogue of 1,683 uORFs (87%) could not be called in those 6 libraries; with a
+median of 12, in a pool of 15 libraries, 967 (57%). Report all three groups,
+not "called" against the rest.
+
+**The best `p` an ORF can reach.** Outside a CDS overlap every vote has
+$p_i = 1/3$, so `min_p` is $3^{-k}$ for $k$ codons with reads. An ORF has at
+most `codons` votes, one fewer than its codons:
+
+| Codons with reads ($k$) | 3 | 4 | 5 | 6 | 9 |
+|---|---:|---:|---:|---:|---:|
+| `min_p` | 0.037 | 0.012 | 0.0041 | 0.0014 | 5.1e-5 |
+
+At q < 0.05, the p cut was 0.0026 in the 6 libraries and 0.0092 in the 15:
+6 and 5 votes, all leading. An ORF of 5 codons or fewer could not be called in
+either, however deep the libraries. Reads clump, so $n$ reads cover fewer than
+$n$ codons: in 15-codon CDS windows, 20 reads covered a median of 7 codons.
+Inside a CDS overlap $q_0$ is not 1/3, and `min_p` is higher or lower.
+
+**A call is about the frame, not the start.** It says that ribosomes elongate
+in the ORF's frame over its voting codons, not where they start
+([Background](#background)). Two ORFs that share a stop share a frame and the
+codons of the shorter one, so the longer one can be called on those codons
+alone: the score cannot tell which start ribosomes use.
+
+**`leads` and `in_frame_share`.** `in_frame_share` counts reads; `leads` counts
+codons. One peak in the ORF's frame can give a high in-frame share, but it is
+one vote. The call uses only the leads; the in-frame share describes the ORF.
+
+**`z` and `p`.** Call and rank by `p` or `q`: `p` is exact. `z` is the lead
+excess in standard deviations, a scale to read, and with few votes its normal
+tail is far from `p`. An ORF whose 5 votes all lead has `z` = 3.2 (normal tail
+0.0008) but `p` = 0.0041.
+
+**Decoys.** `decoys.tsv` checks the null on the data themselves. At the p cut,
+the empirical FDR is (decoys with `p` at or below the cut / `decoys_scored`) /
+(ORFs with `p` at or below the cut / `orfs_scored`), both totals from
+`score_stats.tsv`. Decoys of translated ORFs are not null samples: only one
+frame of a codon can lead, a translated ORF takes it, and its shifted copies
+seldom lead. Thus the empirical FDR is conservative when many ORFs are
+translated, and the decoys of the ORFs not called make the better null set. At
+q < 0.05: 0 of 3,425 decoys passed the cut in the 6 libraries, 3 of 3,425 in
+the 15 (empirical FDR 0.004).
+
+**Pooling.** `score` sums the libraries before it scores them. A pool gives
+more codons with reads, up to the ORF's `codons`, and a translated codon with
+more reads leads more often, but no pool gives an ORF more votes than it has
+codons. With 15 libraries instead of 6, uORF calls went from 66 to 310.
 
 ## Worked example
 
