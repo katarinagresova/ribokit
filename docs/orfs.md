@@ -262,7 +262,8 @@ frame 0, the uoORF has to be much denser: at 10 times the CDS's density it
 gets 25%.
 
 **Try it.** A uoORF in frame 1 of its CDS, as U4 in the
-[worked example](#worked-example): its own part upstream of the CDS (90 nt),
+[worked example](#worked-example) but with round lengths, so the numbers
+differ from U4's: its own part upstream of the CDS (90 nt),
 the overlap (90 nt) and the CDS's own part (180 nt). Set the two densities,
 the frame-0 share $\pi_0$ (the rest split evenly between frames 1 and 2), and
 how many reads of the CDS's start peak fall in the uoORF's own part. The EM
