@@ -107,17 +107,21 @@ flowchart TB
 
 ## 1. The ORF table
 
-`--orfs` is a TSV with `ORF_id Name start end`, in the same transcript-coordinate
-convention as the annotated CDS (`start` = first nt of the start codon, `end` =
-one past the last sense codon; the stop codon is never included). The annotated
-CDSs are added under `<transcript>:CDS` unless the table already lists the same
-span: such a row is that CDS, so it gets type `CDS` and keeps its own
-`ORF_id`, and like every annotated CDS it is not scored.
+`--orfs` is the catalogue of ORFs to count; ribokit does not find ORFs
+([Background](#background)). It is a TSV with `ORF_id Name start end`, in
+the same transcript-coordinate convention as the annotated CDS (`start` =
+first nt of the start codon, `end` = one past the last sense codon; the stop
+codon is never included). The annotated CDSs are added under
+`<transcript>:CDS` unless the table already lists the same span: such a row
+is that CDS, so it gets type `CDS` and keeps its own `ORF_id`, and like
+every annotated CDS it is not scored.
 
 A row is dropped (and counted in `stats.tsv`) if its transcript is not in the
 GTF, its length is not a positive multiple of 3, it runs off the transcript, or
 no stop codon follows it. The start codon itself is **not** checked — non-ATG
-starts, and starts made by a variant, are kept as given.
+starts, and starts made by a variant, are kept as given. The stop codon is
+read from the genome FASTA, so a stop made by a variant counts as no stop
+([Known limits](#known-limits)).
 
 Each ORF's `type` comes from its coordinates against that transcript's
 annotated CDS:
@@ -129,6 +133,10 @@ annotated CDS:
   a transcript with no annotated CDS, or an in-frame N-terminal extension of one. Positions in no
   ORF form the <b>outside components</b> (gray): leader, trailer, or the whole transcript.</figcaption>
 </figure>
+
+Rows can share a stop: each longer one is then an in-frame N-terminal
+extension of the shorter. These nested ORFs keep their own rows, and the EM
+splits the reads they share ([Known limits](#known-limits)).
 
 ## 2. Outside components
 
