@@ -155,8 +155,8 @@ CDS, but it throws away any other reading frame a read might carry. Here each
 read length instead gets **one** offset: the *phase-0* offset of `quant`'s
 window, i.e. the offset of the untrimmed phase (a multiple of 3, and the
 largest phase at almost every length). The P-site is 5′ end + this offset, on
-every BAM reference the read aligns to — UTRs, transcripts without a CDS, and
-references missing from the GTF included. A read length without offsets has
+every GTF transcript the read aligns to, UTRs and transcripts without a CDS
+included ([step 2](#2-outside-components)). A read length without offsets has
 no P-sites, so its reads are not counted, as in `quant`. Nor is an alignment
 whose P-site lands past its transcript's end, which a long 3′ soft clip can
 cause (`alignments_psite_off_transcript` in `stats.tsv`).
