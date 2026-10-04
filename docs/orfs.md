@@ -743,6 +743,31 @@ frame: in the called uORFs, the median share of leading codons goes from
 weaker in one of the 5 experiments (frame-0 share 0.79-0.81), 129 of the
 356 calls are lost.
 
+### Frame evidence is not start evidence
+
+Harringtonine holds ribosomes at start codons. In the 6 harringtonine
+libraries, the offsets of `orfs` put the start peak on nt 0 of annotated
+start codons at 23-29 nt; at 27-28 nt, 52-62% of the P-sites from nt -15 to
++17 are on nt 0. A catalogue ORF has a **start peak** when its start codon
+(± 1 codon) holds more harringtonine P-sites than expected: against the 30
+nt on each side (local), or against the elongation libraries of the same
+condition, as a larger share of the transcript's harringtonine P-sites than
+of its elongation P-sites (elongation).
+
+At the same power, called and not-called uORFs had start peaks equally
+often (15-library calls, one condition):
+
+| uORFs, power ≥ 0.8 | n | Start peak, local | Start peak, elongation |
+|---|---:|---:|---:|
+| called | 248 | 168 (68%) | 130 (52%) |
+| not called | 243 | 171 (70%) | 122 (50%) |
+
+Over all uORFs, start peaks were nearly as frequent as at annotated CDS
+starts of the same depth. So most catalogue uORFs start as CDSs do, and about half of
+those that start and have power have no frame that the score accepts. A call
+says that ribosomes elongate in the ORF's frame, not that they start at its
+start codon ([Background](#background)).
+
 ## Determinism
 
 As for `quant`: no random numbers anywhere, ties go to the smallest tie-break,
