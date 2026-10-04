@@ -147,6 +147,19 @@ it, its stop codon included), or `<transcript>:transcript` if it has no
 annotated CDS at all. Empty components (no free positions) are left out.
 Outside components carry no frame term ([step 4](#4-em-with-a-frame-term)).
 
+They exist because a read can fit the CDS of one transcript and the UTR of
+another, or a transcript without a CDS, such as a pseudogene. Without outside
+components such a read has only the CDS to go to and counts for it in full.
+With them, the CDS and the outside component compete by density, as two CDSs
+do in `quant`. In the [worked example](#worked-example), P1 is a transcript
+without a CDS that holds 240 nt of U1's CDS, and 2,919 reads fit both:
+`quant` gives U1's CDS 6,090 reads, against 5,984 drawn from it; `orfs` gives
+it 6,010, and P1 127, against 153. This is also why `orfs`' CDS counts differ a
+little from `quant`'s; for CDS counts, use `quant`
+([Typical workflow](#typical-workflow)). A leader's `NumReads` over its
+`Length` is the read density around its transcript's uORFs, e.g. a reference
+for them.
+
 Only transcripts of the GTF are counted. Alignments to BAM references that are
 not in the GTF are dropped before any other step, so the run is the same as on
 a BAM without those references: a read that also aligns to a GTF transcript
