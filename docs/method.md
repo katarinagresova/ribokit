@@ -394,6 +394,17 @@ classes; SQUAREM converges in 10 EM steps.
 A rerun on the same input gives byte-identical output files; the tests check
 this.
 
+Inputs that should give the same counts but are not the same files can still
+move counts a little: the same reads in another order in the BAM, a GTF with
+more or fewer transcripts (even ones without reads), or another `--tol`. The
+first two change the order of the EM's sums and so their rounding; `--tol`
+changes where the EM stops. Where the likelihood is almost flat, e.g. between
+near-identical CDSs, the EM stops a little short of its maximum
+([The iteration](#the-iteration)), and these changes move that stop point. On
+real data, removing some transcripts' alignments from a BAM, which changes
+the order of the other reads, moved counts by 1.5e-6 reads or less. Compare
+such runs with a tolerance, not byte for byte.
+
 ## References
 
 - Ahmed N, Sormanni P, Ciryam P, Vendruscolo M, Dobson CM, O'Brien EP (2019).
