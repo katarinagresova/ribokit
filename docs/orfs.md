@@ -120,10 +120,11 @@ replicate libraries — and scores the pool, so per-library scores are calls
 with one `--orfs-prefix`.
 
 <figure markdown="span">
-  ![Eight codons of an ORF, their P-sites split by frame, five leading and three not](img/codon_lead.svg)
+  ![Seven codons of an ORF after its start codon, their P-sites split by frame: four lead, two do not, one has no reads](img/codon_lead.svg)
   <figcaption>Every codon but the start codon casts one vote: it <b>leads</b> when more of its
   score-length P-sites are in the ORF's own frame than in either other frame. A codon with no reads
-  does not vote. A peak is one codon, so it is one vote at most, however many reads it holds.</figcaption>
+  does not vote. A peak is one codon, so it is one vote at most, however many reads it holds.
+  Codons are numbered as in <code>codons.tsv</code>: codon 0, the start codon, is not shown.</figcaption>
 </figure>
 
 - **Which lengths vote.** By default, the read lengths whose frame-0 share is
