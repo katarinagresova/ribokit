@@ -184,15 +184,15 @@ Each file is written as `<prefix>.<name>`:
 ribokit's ORF tests (`tests/synth.py`, `make_orf_dataset`) build five
 transcripts with CDSs, each carrying ORFs that exercise one design decision:
 
-- **U1**: a 20-codon ATG uORF with its own reads, an untranslated 15-codon ATG
-  candidate with none, and a 10-codon CTG ORF with reads on its start codon
+- **U1**: a 21-codon ATG uORF with its own reads, an untranslated 16-codon ATG
+  candidate with none, and an 11-codon CTG ORF with reads on its start codon
   only (a peak, not a translated ORF) — all upstream of U1's CDS.
-- **U2** and **U3**: a translated 49-codon uoORF overlapping their CDS's start,
+- **U2** and **U3**: a translated 50-codon uoORF overlapping their CDS's start,
   in frame 1 and frame 2 respectively.
 - **U4**: the same arrangement as U2, but the uoORF itself is **not**
   translated — only its host CDS's start-codon peak is.
-- **U5**: a translated 79-codon uoORF with a longer run upstream of the CDS.
-- **N1**: a 25-codon translated ORF on a transcript with no annotated CDS
+- **U5**: a translated 80-codon uoORF with a longer run upstream of the CDS.
+- **N1**: a 26-codon translated ORF on a transcript with no annotated CDS
   ("other").
 - **P1**: a transcript with no CDS that happens to share 240 nt of sequence
   with U1's CDS (pseudogene-like).
@@ -222,7 +222,7 @@ also landing inside every ORF span — a harder setting than the counts example
 above, needed to check that an untranslated candidate does not get a free
 pass):
 
-| ORF | type | codons | reads | leads | expected | q | called? |
+| ORF | type | voting codons | reads | leads | expected | q | called? |
 |---|---|---:|---:|---:|---:|---:|---|
 | U1's uORF | uORF | 20 | 389 | 19 | 6.7 | 9.4e-8 | yes |
 | N1's ORF | other | 25 | 303 | 20 | 8.3 | 9.1e-6 | yes |
