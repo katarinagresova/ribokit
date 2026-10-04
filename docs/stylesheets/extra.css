@@ -26,3 +26,5 @@
 .rk-controls button:hover { background: var(--md-primary-fg-color); color: var(--md-primary-bg-color); }
 .rk-readout { font-size: 0.7rem; margin: 0.5rem 0 0; }
 .md-typeset figure img { border: 1px solid var(--md-default-fg-color--lightest); border-radius: 4px; }
+/* MathJax's hidden copy for screen readers can be wider than the formula and widen the page on phones. */
+mjx-assistive-mml { max-width: 100%; }
