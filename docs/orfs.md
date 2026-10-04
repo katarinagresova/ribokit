@@ -244,7 +244,8 @@ bug; the score below still does not call U4's uoORF.
 **Scores** (`ribokit score`, pooled over one library, with background reads
 also landing inside every ORF span — a harder setting than the counts example
 above, needed to check that an untranslated candidate does not get a free
-pass):
+pass). The synthetic reads have a weak frame — frame-0 shares of 0.48-0.67 at
+28-30 nt, below the default 0.9 — so the run gives `--frame-lengths 28-30`:
 
 | ORF | type | voting codons | reads | leads | expected | q | called? |
 |---|---|---:|---:|---:|---:|---:|---|
