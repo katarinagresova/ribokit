@@ -573,9 +573,9 @@ and `score` 10-25 s and 0.2-0.3 GB for 6-15 libraries.
   ([step 1](#1-the-orf-table)). One that ends after the CDS stop contains the
   whole CDS, which is often a sign that the annotated CDS stops too early.
   Find them by their `end` against the `end` of their transcript's CDS row in
-  `orfs.tsv`, and check them before a uORF analysis. In a real catalogue, 2 of
-  59 uoORFs stop after the CDS stop, both on transcripts whose annotated CDS
-  stops early.
+  `orfs.tsv`, and check them before a uORF analysis. Of the 59 uoORFs of the
+  [real-data ORF table](#the-data), 2 stop after the CDS stop, both on
+  transcripts whose annotated CDS stops early.
 - **Starts and stops made by a variant.** The start codon is not checked
   ([step 1](#1-the-orf-table)), so an ORF whose start codon comes from a
   variant in the sample is kept. The stop codon is checked against the genome
