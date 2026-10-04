@@ -39,7 +39,8 @@ flowchart TB
 convention as the annotated CDS (`start` = first nt of the start codon, `end` =
 one past the last sense codon; the stop codon is never included). The annotated
 CDSs are added under `<transcript>:CDS` unless the table already lists the same
-span.
+span: such a row is that CDS, so it gets type `CDS` and keeps its own
+`ORF_id`, and like every annotated CDS it is not scored.
 
 A row is dropped (and counted in `stats.tsv`) if its transcript is not in the
 GTF, its length is not a positive multiple of 3, it runs off the transcript, or
@@ -75,13 +76,21 @@ read length instead gets **one** offset: the *phase-0* offset of `quant`'s
 window, i.e. the offset of the untrimmed phase (a multiple of 3, and the
 largest phase at almost every length). The P-site is 5′ end + this offset, on
 every BAM reference the read aligns to — UTRs, transcripts without a CDS, and
-references missing from the GTF included.
+references missing from the GTF included. A read length without offsets has
+no P-sites, so its reads are not counted, as in `quant`. Nor is an alignment
+whose P-site lands past its transcript's end, which a long 3′ soft clip can
+cause (`alignments_psite_off_transcript` in `stats.tsv`).
 
 How often a read length's P-sites, placed this way, land in frame 0/1/2 of a
 CDS is that length's **frame profile**, $\pi_l(f)$. It is measured from reads
 at least 15 nt inside a CDS at both ends (no start or stop peaks), weighted
 1/(number of alignments), over every annotated CDS, and written to
-`frames.tsv`: `length offset reads frame0 frame1 frame2`.
+`frames.tsv`: `length offset reads frame0 frame1 frame2`. The EM
+([step 4](#4-em-with-a-frame-term)) and the score's null
+([step 5](#5-the-codon-lead-score)) use these shares with one pseudo-read per
+frame, $\pi_l(f) = (n_f + 1)/(n + 3)$ for $n$ interior reads: no frame then
+has probability 0, and a length without interior reads gets 1/3 in each frame,
+i.e. no frame information.
 
 !!! tip "Reusing offsets"
     As with `quant`, `--offsets <prefix>.offsets.tsv` reuses another run's
@@ -140,8 +149,9 @@ with one `--orfs-prefix`. The runs must share one ORF table: if their
   weighted by its expected reads from the EM: the ORF's own density as a
   frame-less background, plus, inside the host CDS, the CDS's density times
   $3\,\pi_l(\text{that position's frame in the CDS})$ — the same frame term the
-  EM uses. This gives the null frame probabilities $q$; outside any CDS
-  overlap $q = (1/3, 1/3, 1/3)$, but inside one, the host CDS's own frame bleed
+  EM uses. This gives the null frame probabilities $q$ per read length and
+  library; a codon's $q$ mixes them, weighted by its reads of each. Outside any
+  CDS overlap $q = (1/3, 1/3, 1/3)$, but inside one, the host CDS's own frame bleed
   raises or lowers the untranslated odds of a lead.
 - **One vote per codon.** A codon's reads do not arrive independently — two
   footprints of a codon share a nucleotide far more often than independent
