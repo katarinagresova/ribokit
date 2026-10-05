@@ -377,8 +377,9 @@ reaches the cut in about half the draws, as real windows of that size and
 depth do ([Power at uORF depth](#power-at-uorf-depth)); *new draw* shows the
 spread. Tick *null: independent reads*: the same reads give a much smaller
 `p`, because that null takes a clump in one frame for a rare event. Untick
-*translated*: about a third of the votes lead. Set 5 voting codons: at any depth,
-`min_p` is at least $3^{-5} = 0.0041$. Put 15 codons inside a host CDS: its reads
+*translated*: about a quarter of the votes lead, fewer than the null's third,
+because a codon whose clumps land in different frames can tie. Set 5 voting
+codons: at any depth, `min_p` is at least $3^{-5} = 0.0041$. Put 15 codons inside a host CDS: its reads
 fall in the ORF's off-frames, and there the null expects fewer leads.
 
 ## 6. Outputs

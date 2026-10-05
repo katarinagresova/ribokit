@@ -383,8 +383,8 @@ classes; SQUAREM converges in 10 EM steps.
 | CDS | true reads | `NumReads` | |
 |---|---:|---:|---|
 | A1 | 3,198 | 3,198.0 | the only CDS of its gene |
-| B1 | 2,132 | 2,045.1 | B1 and B2 share most of their CDS; |
-| B2 | 3,270 | 3,357.9 | B1's share is off by 1.6 percentage points |
+| B1 | 2,132 | 2,045.0 | B1 and B2 share most of their CDS; |
+| B2 | 3,270 | 3,358.0 | B1's share is off by 1.6 percentage points |
 | C1 | 1,614 | 1,614.5 | identical CDSs (only their 5′ UTRs differ): |
 | C2 | 1,614 | 1,614.5 | listed in `ties.tsv` |
 | D1 | 2,646 | 2,646.0 | the only CDS of its gene |
@@ -394,7 +394,8 @@ classes; SQUAREM converges in 10 EM steps.
 - No random numbers anywhere.
 - The EM starts from an even split; ties between offset windows go to the
   smaller centre.
-- Transcripts and outputs are sorted by name.
+- Transcripts and outputs are sorted by name, except `psites.tsv`, which keeps
+  the BAM's order.
 - An EM that does not converge raises an error.
 
 A rerun on the same input gives byte-identical output files; the tests check
