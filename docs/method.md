@@ -37,7 +37,7 @@ flowchart TB
 | The P-site sits about 12 nt from a footprint's 5′ end, and the exact distance depends on footprint length and trimming. | Estimates one offset per read length and phase from the reads that span start and stop codons ([step 3](#3-p-site-offsets)). |
 | Footprints that overlap a CDS were not all made by ribosomes translating it, e.g. ribosomes in the 5′ UTR next to the start codon. | Counts a read for a CDS only if its P-site is inside it ([step 4](#4-assignment)). |
 | Reads fit several CDSs when transcripts share sequence. | Splits them by EM with a length term, so shared reads go by density, not by read count ([step 6](#6-em)). |
-| Some CDSs cannot be told apart by any read. | Lists them in `ties.tsv` instead of reporting a split the data cannot support. |
+| Some CDSs cannot be told apart by any read. | Lists them in `ties.tsv`: the split between them comes from the model, not from the data ([step 6](#ties)). |
 | Library preparation adds untemplated nucleotides at the 5′ end. | Excludes a 5′ soft clip from the footprint instead of dropping the read ([step 2](#2-reads)). |
 | Results must be reproducible. | No randomness anywhere; a rerun gives byte-identical output; an EM that does not converge is an error. |
 
@@ -316,10 +316,14 @@ With **A and B are identical**, no setting changes the 50:50 split.
 ### Ties
 
 CDSs that have no unique reads and fit exactly the same reads (e.g. identical
-paralogs, or isoforms that differ only in their UTRs) cannot be told apart. Their
-split reflects the EM's starting point, not the data. ribokit lists them in
-`ties.tsv` (`Name`, `tie_group`) so that you can sum them or analyse them as a
-group.
+paralogs, isoforms that differ only in their UTRs, or a CDS and an in-frame
+N-terminal extension of it that no read reaches) cannot be told apart. Their
+split comes from the model, not from the data. CDSs of the same length keep the
+EM's even start. Of CDSs of different lengths, the shortest gets almost all the
+reads: the same reads are denser on a shorter CDS, so each EM step multiplies
+a longer CDS's count, relative to a shorter one's, by
+$L_\text{short} / L_\text{long}$. ribokit lists them in `ties.tsv` (`Name`,
+`tie_group`) so that you can sum them or analyse them as a group.
 
 ## 7. Outputs
 

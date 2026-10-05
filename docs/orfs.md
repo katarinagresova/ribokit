@@ -251,7 +251,8 @@ The term matters where ORFs disagree on frame, e.g. a uoORF sharing reads
 with its host CDS, and against outside components, which have no frame
 term: there a read in an ORF's frame 0 leans toward the ORF, an off-frame
 read toward the outside component. Components that no read's frame or
-density tells apart are listed in `ties.tsv`, as in `quant`.
+density tells apart are listed in `ties.tsv`, as in `quant`
+([Method, Ties](method.md#ties)).
 
 A numeric example: a read length with $\pi_l = (0.9, 0.07, 0.03)$, and a
 uoORF in frame 1 of its CDS, at the same density as the CDS. A read in the
