@@ -34,7 +34,7 @@ flowchart TB
 
 | Problem | What ribokit does |
 |---|---|
-| The P-site sits about 12 nt from a footprint's 5′ end, and the exact distance depends on footprint length and trimming. | Estimates one offset per read length and phase from the reads that span start and stop codons ([step 3](#3-p-site-offsets)). |
+| The P-site sits about 12 nt from a footprint's 5′ end, and the exact distance depends on footprint length and trimming. | Estimates one offset per read length and phase from the reads that span the start codon or the last sense codon ([step 3](#3-p-site-offsets)). |
 | Footprints that overlap a CDS were not all made by ribosomes translating it, e.g. ribosomes in the 5′ UTR next to the start codon. | Counts a read for a CDS only if its P-site is inside it ([step 4](#4-assignment)). |
 | Reads fit several CDSs when transcripts share sequence. | Splits them by EM with a length term, so shared reads go by density, not by read count ([step 6](#6-em)). |
 | Some CDSs cannot be told apart by any read. | Lists them in `ties.tsv`: the split between them comes from the model, not from the data ([step 6](#ties)). |
@@ -118,7 +118,8 @@ start codon or the last sense codon**:
 
 ribokit scores each candidate offset by the number of reads whose P-site it
 puts inside the CDS (a read with *n* alignments counts 1/*n* at each). The reads
-that span the start or last codon are the class's *support*.
+that cover the first nt of the start codon or of the last sense codon are the
+class's *support*.
 
 ### One window per read length
 
@@ -158,8 +159,8 @@ three phases.
 
 ### What `offsets.tsv` reports
 
-One row per (length, phase): `offset`, `support` (weighted reads spanning the
-start or last codon), `z` and `reads`.
+One row per (length, phase): `offset`, `support` (weighted reads that cover the
+first nt of the start codon or of the last sense codon), `z` and `reads`.
 
 `z` says how firmly the data pin this phase's offset. Windows next to each other
 differ in one phase only: moving the centre from $c$ to $c + 1$ swaps offset

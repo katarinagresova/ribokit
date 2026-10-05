@@ -33,7 +33,7 @@ Inputs:
 | Output | Content |
 |---|---|
 | `<prefix>.quant.tsv` | `Name Length EffectiveLength ritpm NumReads`, one row per CDS, sorted by Name. `Length` = CDS without the stop codon. `NumReads` = expected reads; they sum to the assigned reads. `ritpm` = reads per nt, scaled to sum to 1e6. `NA` where no read is compatible. |
-| `<prefix>.offsets.tsv` | per (length, phase): `offset` (nt from the 5' end to the P-site codon), `support` (reads spanning a start or stop), `z` (how firmly the data pin this phase's offset: score lead of the chosen window over the best window that gives this phase another offset, divided by the square root of the reads the two disagree on; below about 4 = weakly determined), `reads` |
+| `<prefix>.offsets.tsv` | per (length, phase): `offset` (nt from the 5' end to the P-site codon), `support` (reads covering the first nt of the start codon or of the last sense codon; a read with n alignments counts 1/n), `z` (how firmly the data pin this phase's offset: score lead of the chosen window over the best window that gives this phase another offset, divided by the square root of the reads the two disagree on; below about 4 = weakly determined), `reads` |
 | `<prefix>.ties.tsv` | `Name tie_group`: CDSs that no read tells apart (e.g. identical paralogs). Their split comes from the model, not from the data: equally long CDSs keep the EM's even start, otherwise the shortest gets almost all the reads. |
 | `<prefix>.stats.tsv` | reads left after each filter, EM steps and log-likelihood |
 | `<prefix>.psites.tsv` | `read Name psite length`, one row per alignment assigned to a CDS: `psite` is the 0-based transcript position of the P-site's first nt |
