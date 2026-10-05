@@ -33,8 +33,8 @@ def test_null_codons_keep_clear_of_starts():
     is_start = np.zeros(200, dtype=bool)
     is_start[100] = True
     got = set(starts.null_codons(bg, is_start).tolist())
-    # window [c - 3, c + 6) inside the background, no start within 8 nt
-    assert got == {c for c in range(67, 145) if abs(c - 100) > 8}
+    # window [c - 1, c + 3) inside the background, no start within 8 nt
+    assert got == {c for c in range(65, 148) if abs(c - 100) > 8}
 
 
 def test_fit_factors_recover_planted():
@@ -56,6 +56,33 @@ def test_start_lengths_longest_run():
     assert starts.choose_start_lengths(peaks) == [28, 29]
 
 
+def test_orf_types():
+    cs, ce = np.full(8, 100), np.full(8, 400)
+    start = np.array([10, 40, 97, 98, 100, 160, 161, 420])
+    end = np.array([60, 400, 400, 130, 400, 400, 200, 500])
+    assert list(starts.orf_types(start, end, cs, ce)) == [
+        "uORF", "extension", "extension", "uoORF", "CDS", "truncation", "internal", "dORF"]
+    assert starts.orf_types(np.array([5]), np.array([50]), np.array([-1]), np.array([-1]))[0] == "other"
+
+
+def test_bh_counts_untested_as_p1():
+    p = np.array([0.001, 0.02, 0.5])
+    assert np.allclose(starts.bh(p, 3), sps.false_discovery_control(p))
+    assert np.allclose(starts.bh(p, 10), sps.false_discovery_control(np.r_[p, np.ones(7)])[:3])
+
+
+def test_near_starts_best_first():
+    pos = np.array([100, 106, 112, 150, 200])
+    p = np.array([1e-3, 1e-8, 1e-5, 1e-6, 0.5])
+    called, by = starts.near_starts(pos, p, p < 0.01)
+    # 106 is best: it stops 100 (6 nt before) and 112 (codon 2 after); 150 is 44 nt after, out of reach
+    assert called.tolist() == [False, True, False, True, False]
+    assert by.tolist() == [1, -1, 1, -1, -1]
+    # codons 1-10 of an annotated start (here 100) are not called, even when it is not called itself
+    called, by = starts.near_starts(pos, p, p < 0.01, annotated=[0])
+    assert called.tolist() == [True, False, False, True, False] and by.tolist() == [-1, 0, 0, -1, -1]
+
+
 @pytest.fixture(scope="module")
 def started(tmp_path_factory):
     # as in the validation: one offset table per pool, from `quant` on the merged harringtonine BAMs
@@ -72,7 +99,8 @@ def started(tmp_path_factory):
     sheet = d / "sheet.tsv"
     pd.DataFrame(rows, columns=["pool", "harringtonine", "elongation"]).to_csv(sheet, sep="\t", index=False)
     out, st = starts.run(str(sheet), str(data["gtf"]), str(data["fasta"]), str(d / "s"), str(data["orfs"]))
-    return dict(dir=d, data=data, sheet=sheet, out=out, stats=st)
+    scan, scan_st = starts.run(str(sheet), str(data["gtf"]), str(data["fasta"]), str(d / "scan"), scan=True)
+    return dict(dir=d, data=data, sheet=sheet, out=out, stats=st, scan=scan, scan_stats=scan_st)
 
 
 def test_start_lengths_from_kernel(started):
@@ -107,3 +135,50 @@ def test_starts_cli_deterministic(started, tmp_path):
               "--orfs", str(data["orfs"]), "--out-prefix", str(tmp_path / "again")])
     for f in ("starts", "kernel", "factors", "starts_stats"):
         assert filecmp.cmp(d / f"s.{f}.tsv", tmp_path / f"again.{f}.tsv", shallow=False), f
+    cli.main(["starts", "--libraries", str(started["sheet"]), "--gtf", str(data["gtf"]), "--fasta", str(data["fasta"]),
+              "--scan", "--out-prefix", str(tmp_path / "scan")])
+    for f in ("starts", "start_orfs", "starts_stats"):
+        assert filecmp.cmp(d / f"scan.{f}.tsv", tmp_path / f"scan.{f}.tsv", shallow=False), f
+
+
+def test_scan_calls(started):
+    # check 1 for the scan. Over seeds 3-12: every annotated start called; 61 of 70 planted starts called at their
+    # codon, the misses at 4-5x enrichment with 1-5 elongation reads (q 0.06-0.3); the pair's CTG and the weaker
+    # start 5 codons after a planted one are never called, and listed with the start that stops them; the pause
+    # and the untranslated uORF never called. Calls at no planted start: 0-5 per seed in leaders (q >= 0.012 but
+    # one), 2-8 in CDSs (about BH's share: the CDS null windows are at 0.6-0.8x alpha)
+    data = started["data"]
+    out = started["scan"]
+    key = {f"{n}_{s + 1}": i for i, (n, s, e, _, _) in data["orf_coords"].items()}
+    out = out.assign(truth=out["ORF_id"].map(key)).set_index("ORF_id")
+    by_truth = out.dropna(subset=["truth"]).set_index("truth")
+    cds = by_truth[by_truth.index.str.endswith(":CDS")]
+    assert cds["called"].all() and (cds["type"] == "CDS").all()
+    assert sum(by_truth.at[i, "called"] for i in PLANTED) >= 6
+    want = {"S1_uATG": "uORF", "S1_uCTG": "uORF", "S2_uoORF": "uoORF", "S3_ext": "extension", "S4_pairATG": "uORF",
+            "S5_first": "uORF", "N1_ORF": "other"}
+    for i, t in want.items():
+        assert by_truth.at[i, "type"] == t, i
+        assert by_truth.at[i, "end"] == data["orf_coords"][i][2], i
+    for weaker, stronger in (("S4_pairCTG", "S4_pairATG"), ("S5_after", "S5_first")):
+        if weaker in by_truth.index:
+            assert not by_truth.at[weaker, "called"]
+            if by_truth.at[stronger, "called"]:
+                assert out.at[by_truth.at[weaker, "stopped_by"], "truth"] == stronger
+    for i in ("S6_pause", "S7_quiet"):
+        assert i not in by_truth.index or not by_truth.at[i, "called"], i
+    false_leader = out[out["called"] & out["truth"].isna() & (out["region"] == "leader")]
+    assert len(false_leader) <= 3
+    so = pd.read_csv(started["dir"] / "scan.start_orfs.tsv", sep="\t")
+    assert len(so) == started["scan_stats"]["called"] - len(cds) - started["scan_stats"]["called_without_stop"]
+    assert (so["type"] != "CDS").all() and set(so.columns[:4]) == {"ORF_id", "Name", "start", "end"}
+
+
+def test_scan_orfs_feed_orfs(started, tmp_path):
+    # start_orfs.tsv is an ORF table for `ribokit orfs`: every row is kept
+    d, data = started["dir"], started["data"]
+    _, _, _, st = orfs.run(str(data["libs"]["elongation", 1]), str(data["gtf"]), str(data["fasta"]), WINDOW,
+                           str(tmp_path / "o"), orfs_path=str(d / "scan.start_orfs.tsv"),
+                           offsets_path=str(d / "pool.offsets.tsv"))
+    assert st["orf_table_rows"] == len(pd.read_csv(d / "scan.start_orfs.tsv", sep="\t"))
+    assert sum(v for k, v in st.items() if k.startswith("orfs_dropped_")) == 0

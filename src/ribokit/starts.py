@@ -21,18 +21,25 @@ its codons 1-10 (RAISED, never background), with mostly unique reads (processed 
 their parent's start peak).
 
 The test. A window has h harringtonine and e elongation reads. Its elongation rate has a gamma prior:
-mean lam0 (the elongation density of its transcript's region, times the window's nt), shape a per
-region (from the null windows). Then h ~ NB(mean R max(e, (a + e) / (a / lam0 + 1)), shape a + e),
+mean lam0 (the sum over its nt of the elongation density of their zone in the transcript: leader, CDS
+frame 0, 1 or 2, trailer, transcript), shape a per region (from the null windows). Then h ~ NB(mean R max(e, (a + e) / (a / lam0 + 1)), shape a + e),
 with R = f_b s_t: the prior lifts a window with few elongation reads, but does not shrink a pause.
 Pools add their means and variances. An extra overdispersion phi per region and bin of
-expected reads makes at most 1% of the null windows reach p <= 0.01. q is BH per region.
+expected reads makes at most 1% of the null windows reach p <= 0.01. q is BH per class: the annotated
+starts, and the other candidates per region.
+
+Candidates: the starts of an ORF table and the annotated starts, or a scan: each start codon with
+harringtonine reads in its window (BH counts every start codon of the class: the others have p = 1).
+The codons 1-10 of an annotated start are not called. Then the scan calls starts in the order of p:
+a start with q < 0.05 is called if no called start stops it, and it stops the candidates within 8 nt
+and in its codons 1-10 (harringtonine raises them). Each called start gives an ORF to its first
+in-frame stop, typed against the annotated CDS.
 """
 import logging
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from scipy import stats
 from scipy.special import betainc, gammainc
 
 from . import annotation
@@ -41,13 +48,14 @@ log = logging.getLogger(__name__)
 
 GAP = 64
 REGIONS = ("leader", "CDS", "trailer", "transcript")
+CLASSES = REGIONS + ("annotated",)   # BH classes: the annotated starts, the other candidates by region
 START_CODONS = ("ATG", "CTG", "GTG", "TTG", "AAG", "ACG", "AGG", "ATA", "ATC", "ATT")
-WIN = (-3, 6)        # a start's window: nt from its first nt, the start codon +-1 codon
+WIN = (-1, 3)        # a start's window: nt from its first nt, the start codon and the nt before it
 RAISED = (-3, 33)    # an annotated start's window and its codons 1-10: harringtonine raises them
 NEAR = (-8, 8)       # a null codon has no start codon this near: their windows would overlap
 PROFILE = (-15, 63)  # nt from the annotated start: the kernel to codon 10, then codons 11-20 scale the elongation
 KERNEL_END = 33
-STRIDE = 9           # one null codon in nine for the null windows: they do not overlap
+STRIDE = WIN[1] - WIN[0]   # one null codon per window width for the null windows: they do not overlap
 MAX_MULTI = 0.5      # null windows: multimapped share of the window's reads below this
 PRIOR_READS = 10     # pseudo-reads: transcript scale at the global scale, bin factor at 1
 PRIOR_NT = 100       # pseudo-nt at the region's mean elongation density, per transcript and region
@@ -93,6 +101,19 @@ class Layout:
         """Flat positions of the annotated starts, and their transcript indices."""
         i = np.flatnonzero(self.cds_start >= 0)
         return self.first[i] + self.cds_start[i], i
+
+
+ZONES = 6   # leader, CDS frame 0, 1 and 2, trailer, transcript
+
+
+def zone_index(layout, tx, region):
+    """Per flat position: leader 0, CDS frame 0-2 1-3, trailer 4, transcript 5; -1 in the gaps. The prior
+    density of the elongation reads is per nt of a zone: a window holds one or two frame-0 nt of a CDS."""
+    z = np.where(region < 0, -1, np.choose(np.maximum(region, 0), [0, 1, 4, 5])).astype(np.int8)
+    cds = np.flatnonzero(region == 1)
+    t = tx[cds]
+    z[cds] = 1 + (cds - layout.first[t] - layout.cds_start[t]) % 3
+    return z
 
 
 def make_layout(gtf, fasta, names):
@@ -188,7 +209,8 @@ def bin_names():
 def fit_factors(h, e, tx, b, fit, scale, n_tx, n_bins, prior_reads, iters=500, tol=1e-9):
     """Poisson fit of h = s_t f_b e by alternating updates (h, e, tx, b per position): the factor per bin f
     over the positions `fit`, scaled to an e-weighted mean of 1 there, and the scale per transcript s over
-    the positions `scale`. Priors: prior_reads pseudo-reads at the global scale for s, at factor 1 for f."""
+    the positions `scale`. Priors: prior_reads pseudo-reads at the global scale for s; one pseudo-read at
+    factor 1 for f, so a bin without reads does not get 0."""
     def sums(x, at):
         return np.bincount(tx[at].astype(np.int64) * n_bins + b[at], weights=x[at],
                            minlength=n_tx * n_bins).reshape(n_tx, n_bins)
@@ -197,7 +219,7 @@ def fit_factors(h, e, tx, b, fit, scale, n_tx, n_bins, prior_reads, iters=500, t
     for _ in range(iters):
         fe = (es * f).sum(axis=1)
         s = (hs.sum(axis=1) + prior_reads * hs.sum() / fe.sum()) / (fe + prior_reads)
-        new = (hf.sum(axis=0) + prior_reads) / ((s[:, None] * ef).sum(axis=0) + prior_reads)
+        new = (hf.sum(axis=0) + 1) / ((s[:, None] * ef).sum(axis=0) + 1)
         new /= (new * ef.sum(axis=0)).sum() / ef.sum()
         done = np.abs(new - f).max() < tol
         f = new
@@ -256,7 +278,7 @@ class Pool:
     multi: np.ndarray       # multimapped P-sites, both kinds
     f: np.ndarray = None    # factor per bin
     s: np.ndarray = None    # scale per transcript
-    lam: np.ndarray = None  # prior mean elongation reads per window, per (transcript, region)
+    dens: np.ndarray = None  # prior mean elongation reads per nt, per (transcript, zone)
     a: np.ndarray = None    # prior shape per region (inf: no spread)
 
 
@@ -265,19 +287,18 @@ def moments_nb(h, m, base_var):
     return float(max((((h - m) ** 2).sum() - base_var.sum()) / max((m ** 2).sum(), 1e-300), 0))
 
 
-def fit_pool(pool, tx, region, bins, bg, null_pos, null_win, n_tx):
+def fit_pool(pool, tx, region, zone, bins, bg, null_pos, null_win, n_tx):
     """The pool's background: factors and scales (fit_factors), the prior mean and shape of the
     elongation reads of a window."""
     bg_pos = np.flatnonzero(bg)
     pool.f, pool.s = fit_factors(pool.h, pool.e, tx, bins, null_pos, bg_pos, n_tx, len(bin_names()), PRIOR_READS)
-    key = tx[bg_pos].astype(np.int64) * 4 + region[bg_pos]
-    e_tr = np.bincount(key, weights=pool.e[bg_pos], minlength=n_tx * 4)
-    n_tr = np.bincount(key, minlength=n_tx * 4)
-    d_r = (np.bincount(region[bg_pos], weights=pool.e[bg_pos], minlength=4)
-           / np.maximum(np.bincount(region[bg_pos], minlength=4), 1))
-    pool.lam = (e_tr + PRIOR_NT * np.tile(d_r, n_tx)) / (n_tr + PRIOR_NT) * (WIN[1] - WIN[0])
+    key = tx[bg_pos].astype(np.int64) * ZONES + zone[bg_pos]
+    z_mean = (np.bincount(zone[bg_pos], weights=pool.e[bg_pos], minlength=ZONES)
+              / np.maximum(np.bincount(zone[bg_pos], minlength=ZONES), 1))
+    pool.dens = ((np.bincount(key, weights=pool.e[bg_pos], minlength=n_tx * ZONES) + PRIOR_NT * np.tile(z_mean, n_tx))
+                 / (np.bincount(key, minlength=n_tx * ZONES) + PRIOR_NT))
     e = window_sums(pool.e, null_win)
-    lam0 = pool.lam[tx[null_win].astype(np.int64) * 4 + region[null_win]]
+    lam0 = prior_mean(pool, null_win, tx, zone)
     pool.a = np.full(4, np.inf)
     for r in range(4):
         k = region[null_win] == r
@@ -285,7 +306,17 @@ def fit_pool(pool, tx, region, bins, bg, null_pos, null_win, n_tx):
         pool.a[r] = 1 / inv if inv > 0 else np.inf
 
 
-def window_moments(pool, pos, tx, region, bins):
+def prior_mean(pool, pos, tx, zone):
+    """Prior mean elongation reads of the windows at pos: the densities of their nt's zones in their transcript."""
+    t = tx[pos].astype(np.int64)
+    lam = np.zeros(len(pos))
+    for k in range(WIN[0], WIN[1]):
+        z = zone[pos + k]
+        lam += np.where((z >= 0) & (tx[pos + k] == t), pool.dens[t * ZONES + np.maximum(z, 0)], 0.0)
+    return lam
+
+
+def window_moments(pool, pos, tx, region, zone, bins):
     """Harringtonine reads in the windows at pos, and their mean and variance without phi: the
     elongation rate of a window has a gamma prior (mean lam0, shape a), updated by its e reads. The
     mean is R times the larger of e and the posterior mean: the prior lifts a window with few elongation
@@ -293,7 +324,7 @@ def window_moments(pool, pos, tx, region, bins):
     t, r = tx[pos].astype(np.int64), region[pos]
     e = window_sums(pool.e, pos)
     R = pool.f[bins[pos]] * pool.s[t]
-    lam0 = pool.lam[t * 4 + r]
+    lam0 = prior_mean(pool, pos, tx, zone)
     a = pool.a[r]
     fin = np.isfinite(a)
     af = np.where(fin, a, 0.0)
@@ -360,9 +391,68 @@ def given_starts(path, layout):
                                                           "orf_table_rows_dropped": int((~ok).sum())}
 
 
-def run(sheet_path, gtf, fasta, out_prefix, orfs_path, start_lengths=None):
-    """Start evidence for the starts of an ORF table and the annotated starts, from the `ribokit orfs`
-    runs of a library sheet (TSV pool, harringtonine, elongation: out prefixes, one row per replicate)."""
+def scan_candidates(layout, tx, pools, cs_pos):
+    """Flat positions of the start codons (START_CODONS) with harringtonine reads in their window, and the
+    annotated starts."""
+    c = np.flatnonzero(codon_mask(layout) & (tx >= 0))
+    h = sum(window_sums(pl.h, c) for pl in pools.values())
+    return np.union1d(c[h > 0], cs_pos)
+
+
+def next_stops(layout):
+    """Per flat position x: the first in-frame stop codon at x or after (same frame as x), or the array size."""
+    stop = codon_mask(layout, tuple(sorted(annotation.STOPS)))
+    out = np.empty(layout.size, dtype=np.int64)
+    for r in range(3):
+        i = np.arange(r, layout.size, 3)
+        out[i] = np.minimum.accumulate(np.where(stop[i], i, layout.size)[::-1])[::-1]
+    return out
+
+
+def orf_types(start, end, cs, ce):
+    """ORF type from transcript coordinates against the annotated CDS [cs, ce) (cs -1: no CDS)."""
+    up, inside = start < cs, (start > cs) & (start < ce)
+    frame0 = (start - cs) % 3 == 0
+    return np.select([cs < 0, start == cs, up & (end <= cs), up & frame0, up, inside & frame0, inside],
+                     ["other", "CDS", "uORF", "extension", "uoORF", "truncation", "internal"], "dORF")
+
+
+def bh(p, m):
+    """Benjamini-Hochberg q of p among m tests; the m - len(p) tests not given have p = 1."""
+    order = np.argsort(p, kind="stable")
+    q = np.minimum.accumulate((p[order] * m / np.arange(1, len(p) + 1))[::-1])[::-1]
+    out = np.empty(len(p))
+    out[order] = np.minimum(q, 1.0)
+    return out
+
+
+def near_starts(pos, p, passing, annotated=()):
+    """Called starts. The candidates in codons 1-10 of an annotated start (indices `annotated`) are not called:
+    harringtonine raises them when it is used. Then by p (then position), a passing candidate that no called start
+    stops is called. It stops the candidates within NEAR nt and in its codons 1-10. Returns called, and per
+    candidate the index of the called or annotated start that stops it (-1: none)."""
+    called = np.zeros(len(pos), dtype=bool)
+    stopped_by = np.full(len(pos), -1, dtype=np.int64)
+    for i in annotated:
+        lo, hi = np.searchsorted(pos, [pos[i] + 1, pos[i] + RAISED[1]])
+        stopped_by[lo:hi] = i
+    for i in np.lexsort((pos, p)):
+        if not passing[i] or stopped_by[i] >= 0:
+            continue
+        called[i] = True
+        lo, hi = np.searchsorted(pos, [pos[i] + NEAR[0], pos[i] + RAISED[1]])
+        near = np.arange(lo, hi)
+        near = near[~called[near] & (stopped_by[near] < 0)]
+        stopped_by[near] = i
+    return called, stopped_by
+
+
+def run(sheet_path, gtf, fasta, out_prefix, orfs_path=None, scan=False, start_lengths=None):
+    """Start evidence from the `ribokit orfs` runs of a library sheet (TSV pool, harringtonine, elongation:
+    out prefixes, one row per replicate), for the starts of an ORF table and the annotated starts, or for every
+    start codon with harringtonine reads (scan: also the called starts and their ORFs)."""
+    if (orfs_path is None) == (not scan):
+        raise ValueError("give an ORF table or scan, not both")
     st = {}
     sheet = pd.read_csv(sheet_path, sep="\t", dtype=str)
     prefixes = list(sheet["harringtonine"]) + list(sheet["elongation"])
@@ -373,6 +463,7 @@ def run(sheet_path, gtf, fasta, out_prefix, orfs_path, start_lengths=None):
     layout = make_layout(gtf, fasta, names)
     tx, region, dist = layout.positions()
     bins = bin_index(region, dist)
+    zone = zone_index(layout, tx, region)
     n_tx = len(layout.names)
     bg = background(layout, tx)
     nulls = null_codons(bg, codon_mask(layout))
@@ -428,12 +519,12 @@ def run(sheet_path, gtf, fasta, out_prefix, orfs_path, start_lengths=None):
     st.update(null_codons_unique=len(null_pos), null_windows=len(null_win))
     factors = []
     for name, pl in pools.items():
-        fit_pool(pl, tx, region, bins, bg, null_pos, null_win, n_tx)
+        fit_pool(pl, tx, region, zone, bins, bg, null_pos, null_win, n_tx)
         factors.append(pd.DataFrame({"pool": name, "bin": bin_names(), "factor": pl.f}))
         st.update({f"prior_shape {name} {REGIONS[r]}": pl.a[r] for r in range(4)})
 
     def pooled(pos):
-        got = [window_moments(pl, pos, tx, region, bins) for pl in pools.values()]
+        got = [window_moments(pl, pos, tx, region, zone, bins) for pl in pools.values()]
         return tuple(sum(g[i] for g in got) for i in range(4))
 
     nh, _, nm, nv = pooled(null_win)
@@ -441,8 +532,12 @@ def run(sheet_path, gtf, fasta, out_prefix, orfs_path, start_lengths=None):
     null_p = pvalues(nh, nm, nv, region[null_win], phi)
     st.update({f"phi {REGIONS[r]} {DEPTH[b]}": v for (r, b), v in phi.items()})
 
-    pos, ids, got = given_starts(orfs_path, layout)
-    st.update(got)
+    if scan:
+        pos = scan_candidates(layout, tx, pools, cs_pos)
+        st["candidates"] = len(pos)
+    else:
+        pos, ids, got = given_starts(orfs_path, layout)
+        st.update(got)
     h, e, m, v = pooled(pos)
     p = pvalues(h, m, v, region[pos], phi)
     ann = np.isin(pos, cs_pos) & (m >= 3)
@@ -457,27 +552,53 @@ def run(sheet_path, gtf, fasta, out_prefix, orfs_path, start_lengths=None):
         "codon": [layout.seq[x:x + 3].tobytes().decode() for x in pos],
         "region": np.array(REGIONS)[region[pos]],
         "frame": pd.Series((nt - layout.cds_start[t]) % 3, dtype="Int64").mask(layout.cds_start[t] < 0),
-        "ORF_id": ids, "harringtonine": h, "elongation": e, "expected": m,
+        "ORF_id": [f"{n}_{x + 1}" for n, x in zip(layout.names[t], nt)] if scan else ids, "harringtonine": h, "elongation": e, "expected": m,
         "enrichment": h / np.maximum(m, 1e-300), "p": p, "typical_p": typical_p,
         "multimapped": sum(window_sums(pl.multi, pos) for pl in pools.values())
         / np.maximum(sum(window_sums(pl.h, pos) + window_sums(pl.e, pos) for pl in pools.values()), 1),
     })
+    # BH per class, over every candidate of the class: a scan tests only the start codons with harringtonine
+    # reads, but the others are tests too (p = 1)
+    cls = np.where(np.isin(pos, cs_pos), 4, region[pos])
+    if scan:
+        every = np.flatnonzero(codon_mask(layout) & (tx >= 0))
+        every = every[~np.isin(every, cs_pos)]
+        n_tests = np.r_[np.bincount(region[every], minlength=4), len(cs_pos)]
+    else:
+        n_tests = np.bincount(cls, minlength=5)
     out["q"] = np.nan
-    for r in range(4):
-        k = (region[pos] == r)
+    for c in range(5):
+        k = cls == c
         if k.any():
-            q = stats.false_discovery_control(p[k])
+            q = bh(p[k], n_tests[c])
             out.loc[k, "q"] = q
-            called = k.copy()
-            called[k] = q < 0.05
-            cut = p[called].max() if called.any() else 0.0
-            nr = region[null_win] == r
+            cut = p[k][q < 0.05].max() if (q < 0.05).any() else 0.0
+            nr = region[null_win] == min(c, 1)            # annotated starts: the CDS null windows
             rate = (null_p[nr] <= cut).mean() if nr.any() and cut > 0 else 0.0
-            st.update({f"candidates {REGIONS[r]}": int(k.sum()), f"called {REGIONS[r]}": int(called.sum()),
-                       f"null_rate_at_cut {REGIONS[r]}": rate,
-                       f"expected_false_calls {REGIONS[r]}": rate * k.sum()})
-    out = out[["Name", "start", "codon", "region", "frame", "ORF_id", "harringtonine", "elongation", "expected",
-               "enrichment", "p", "typical_p", "q", "multimapped"]]
+            st.update({f"tests {CLASSES[c]}": int(n_tests[c]), f"candidates {CLASSES[c]}": int(k.sum()),
+                       f"q<0.05 {CLASSES[c]}": int((q < 0.05).sum()), f"null_rate_at_cut {CLASSES[c]}": rate,
+                       f"expected_false {CLASSES[c]}": rate * n_tests[c]})
+    cols = ["Name", "start", "codon", "region", "frame", "ORF_id", "harringtonine", "elongation", "expected",
+            "enrichment", "p", "typical_p", "q", "multimapped"]
+    if scan:
+        called, stopped_by = near_starts(pos, p, out["q"].to_numpy() < 0.05, np.flatnonzero(cls == 4))
+        stop = next_stops(layout)[pos + 3]
+        has_stop = (stop < layout.size) & (tx[np.minimum(stop, layout.size - 1)] == tx[pos])
+        end = np.where(has_stop, stop - layout.first[t], -1)
+        out["called"] = called
+        out["stopped_by"] = pd.Series(out["ORF_id"].to_numpy()[np.maximum(stopped_by, 0)]).where(stopped_by >= 0)
+        out["end"] = pd.Series(end, dtype="Int64").mask(~has_stop)
+        out["type"] = np.where(has_stop, orf_types(nt, end, layout.cds_start[t], layout.cds_end[t]), "no stop")
+        cols += ["called", "stopped_by", "end", "type"]
+        orfs_out = out[called & has_stop & (out["type"] != "CDS").to_numpy()]
+        orfs_out = orfs_out.rename(columns={"codon": "start_codon"})[
+            ["ORF_id", "Name", "start", "end", "type", "start_codon", "harringtonine", "elongation", "expected",
+             "enrichment", "p", "q"]]
+        st.update(called=int(called.sum()), called_without_stop=int((called & ~has_stop).sum()),
+                  stopped=int((stopped_by >= 0).sum()))
+        st.update({f"start_orfs {k}": int(v) for k, v in orfs_out["type"].value_counts().sort_index().items()})
+        orfs_out.to_csv(f"{out_prefix}.start_orfs.tsv", sep="\t", index=False, na_rep="NA")
+    out = out[cols]
     log.info("%s", st)
     out.to_csv(f"{out_prefix}.starts.tsv", sep="\t", index=False, na_rep="NA")
     pd.concat(kern_rows, ignore_index=True).to_csv(f"{out_prefix}.kernel.tsv", sep="\t", index=False)

@@ -323,6 +323,7 @@ BG_LEADER, BG_TRAILER, BG_TRANSCRIPT = 0.05, 0.02, 0.05
 KERNEL = {0: 0.5, **{3 * c: 0.06 for c in range(1, 6)}, **{3 * c: 0.04 for c in range(6, 11)}}
 HARR_LEADER, HARR_TRAILER, HARR_TRANSCRIPT = 4.0, 1.5, 1.5
 WORTH = 60     # a planted start: its kernel in codons of its ORF's density
+KOZAK = "GCCACC"
 
 
 def runoff(codon):
@@ -341,48 +342,48 @@ def first_stop(seq, s):
 def build_start_transcripts(rng, n_fill=30):
     """Transcripts {name: dict(seq, cds_start, cds_end)}, ORFs {id: (name, start, end, density, worth)} (CDSs
     included; worth = the planted start's kernel in codons of density, 0 if not planted) and the pause
-    {name: position}."""
+    {name: position}. Planted starts sit in a fixed context (KOZAK before, GCC after), so no other start codon
+    is within 3 nt of them."""
     rand = lambda n: "".join(rng.choice(list("ACGT"), n))
     codons = lambda n: "".join(rng.choice(SENSE, n))
     stop = lambda: str(rng.choice(STOPS))
     txs, orfs, pauses = {}, {}, {}
 
-    def add(name, leader, n_codons, density, cds="", trailer=150):
-        """A transcript: leader, then a CDS of n_codons (its first codons `cds`, ATG if empty), stop, trailer."""
-        body = cds or "ATG"
-        body += codons(n_codons - len(body) // 3)
-        txs[name] = leader + body + stop() + rand(trailer)
-        orfs[f"{name}:CDS"] = (name, len(leader), len(leader) + 3 * n_codons, density, WORTH)
+    def add(name, leader, n_codons, density, worth=WORTH, trailer=150):
+        """A transcript: leader (its last 6 nt KOZAK), then a CDS of n_codons starting ATG GCC, stop, trailer."""
+        leader = leader[:-6] + KOZAK
+        txs[name] = leader + "ATGGCC" + codons(n_codons - 2) + stop() + rand(trailer)
+        orfs[f"{name}:CDS"] = (name, len(leader), len(leader) + 3 * n_codons, density, worth)
         return len(leader)
 
     for i in range(n_fill):
         add(f"F{i}", rand(int(rng.integers(250, 450))), int(rng.integers(150, 400)), float(rng.uniform(0.5, 3)))
     # S1: a translated ATG uORF and a translated CTG uORF
-    lead = rand(60) + "ATG" + codons(12) + stop() + rand(60)
+    lead = rand(54) + KOZAK + "ATGGCC" + codons(11) + stop() + rand(54) + KOZAK
     s = len(lead)
-    lead += "CTG" + codons(8) + stop() + rand(60)
+    lead += "CTGGCC" + codons(7) + stop() + rand(60)
     add("S1", lead, 200, 1.5)
     orfs["S1_uATG"] = ("S1", 60, 99, 1.0, WORTH)
     orfs["S1_uCTG"] = ("S1", s, s + 27, 1.0, WORTH)
     # S2: a uoORF, ATG 61 nt before the CDS (another frame), its leader part of sense codons
-    lead = rand(90)
+    lead = rand(84) + KOZAK
     s = len(lead)
-    cs = add("S2", lead + "ATG" + codons(19) + rand(1), 200, 1.5)
+    add("S2", lead + "ATGGCC" + codons(18) + rand(7), 200, 1.5)
     orfs["S2_uoORF"] = ("S2", s, first_stop(txs["S2"], s), 1.0, WORTH)
     # S3: an N-terminal extension, CTG 31 codons before the CDS, in frame, no stop
-    cs = add("S3", rand(80) + "CTG" + codons(30), 200, 1.5)
+    cs = add("S3", rand(74) + KOZAK + "CTGGCC" + codons(29) + "GCCACC", 200, 1.5)
     orfs["S3_ext"] = ("S3", 80, cs + 600, 1.0, WORTH)
     # S4: a pair, CTG two codons before an ATG uORF start, in frame; the ATG is the start
-    lead = rand(80) + "CTG" + codons(1)
+    lead = rand(74) + KOZAK + "CTGACC"
     s = len(lead)
-    lead += "ATG" + codons(10) + stop()
+    lead += "ATGGCC" + codons(9) + stop()
     add("S4", lead + rand(80), 200, 1.5)
     orfs["S4_pairATG"] = ("S4", s, s + 33, 1.0, WORTH)
     orfs["S4_pairCTG"] = ("S4", s - 6, s + 33, 0.0, 0)
     # S5: a weaker start 5 codons after a strong one, in frame +1 (ATG at nt 16 of the first ORF)
-    lead = rand(60)
+    lead = rand(54) + KOZAK
     s = len(lead)
-    lead += "ATG" + codons(4) + "CAT" + str(rng.choice([c for c in SENSE if c[0] == "G"])) + codons(13) + stop()
+    lead += "ATGGCC" + codons(3) + "CAT" + str(rng.choice([c for c in SENSE if c[0] == "G"])) + codons(13) + stop()
     add("S5", lead + rand(80), 200, 1.5)
     orfs["S5_first"] = ("S5", s, s + 60, 1.0, WORTH)
     orfs["S5_after"] = ("S5", s + 16, first_stop(txs["S5"], s + 16), 0.3, 10)
@@ -393,10 +394,10 @@ def build_start_transcripts(rng, n_fill=30):
     pauses["S6"] = cs + 240
     orfs["S6_pause"] = ("S6", cs + 240, cs + 750, 0.0, 0)
     # S7: an untranslated ATG uORF
-    add("S7", rand(100) + "ATG" + codons(10) + stop() + rand(100), 200, 1.5)
+    add("S7", rand(94) + KOZAK + "ATGGCC" + codons(9) + stop() + rand(100), 200, 1.5)
     orfs["S7_quiet"] = ("S7", 100, 133, 0.0, 0)
     # N1: no CDS, a translated ORF
-    txs["N1"] = rand(150) + "ATG" + codons(30) + stop() + rand(200)
+    txs["N1"] = rand(144) + KOZAK + "ATGGCC" + codons(29) + stop() + rand(200)
     orfs["N1_ORF"] = ("N1", 150, 243, 1.0, WORTH)
     # untranslated candidates: the first ATG or CTG of the first ten fillers' leaders that has a stop
     for i in range(10):

@@ -58,8 +58,12 @@ def main(argv=None):
                         "row per replicate (a harringtonine library and its matched elongation library)")
     t.add_argument("--gtf", required=True)
     t.add_argument("--fasta", required=True, help="genome FASTA of the GTF")
-    t.add_argument("--orfs", required=True, help="ORF table (TSV with columns ORF_id Name start): its starts are "
-                                                  "tested, and the annotated starts")
+    which = t.add_mutually_exclusive_group(required=True)
+    which.add_argument("--orfs", help="ORF table (TSV with columns ORF_id Name start): its starts are tested, and the "
+                                      "annotated starts")
+    which.add_argument("--scan", action="store_true",
+                       help="test every start codon (ATG and its near-cognates) with harringtonine reads, call starts "
+                            "and write their ORFs (<prefix>.start_orfs.tsv)")
     t.add_argument("--out-prefix", required=True,
                    help="writes <prefix>.starts.tsv, .kernel.tsv, .factors.tsv, .starts_stats.tsv")
     t.add_argument("--start-lengths", type=read_lengths, metavar="LO-HI",
@@ -76,7 +80,8 @@ def main(argv=None):
     elif a.command == "score":
         score.run(a.orfs_prefix, a.out_prefix, frame_lengths=a.frame_lengths)
     else:
-        starts.run(a.libraries, a.gtf, a.fasta, a.out_prefix, a.orfs, start_lengths=a.start_lengths)
+        starts.run(a.libraries, a.gtf, a.fasta, a.out_prefix, orfs_path=a.orfs, scan=a.scan,
+                   start_lengths=a.start_lengths)
 
 
 if __name__ == "__main__":
