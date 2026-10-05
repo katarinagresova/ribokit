@@ -289,8 +289,9 @@ are heading, instead of taking them one at a time:
    estimate; otherwise fall back to $\alpha^{(2)}$, which plain EM already
    guarantees is no worse.
 
-Each cycle costs two or three plain EM steps, which is what `--max-iter` and
-`stats.tsv`'s `em_iterations` count — not cycles. The destination is the same
+Each cycle costs three plain EM steps, which is what `--max-iter` and
+`stats.tsv`'s `em_iterations` count — not cycles; the stop rule is checked on
+each cycle's first step. The destination is the same
 fixed point plain EM would reach (counts never go negative and the
 log-likelihood never drops along the way); SQUAREM only shortens the path, by
 extrapolating where the plain iteration is still heading rather than
