@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from . import __version__, orfs, score
+from . import __version__, orfs, score, starts
 from .quant import quantify
 
 
@@ -51,6 +51,20 @@ def main(argv=None):
     s.add_argument("--frame-lengths", type=read_lengths, metavar="LO-HI",
                    help=f"read lengths that vote (default: those with a frame-0 share >= {score.MIN_FRAME0} "
                         "in every library)")
+    t = sub.add_parser("starts", help="start evidence: harringtonine P-sites against matched elongation P-sites, "
+                                      "from `ribokit orfs` runs")
+    t.add_argument("--libraries", required=True,
+                   help="TSV with columns pool, harringtonine, elongation: out prefixes of `ribokit orfs` runs, one "
+                        "row per replicate (a harringtonine library and its matched elongation library)")
+    t.add_argument("--gtf", required=True)
+    t.add_argument("--fasta", required=True, help="genome FASTA of the GTF")
+    t.add_argument("--orfs", required=True, help="ORF table (TSV with columns ORF_id Name start): its starts are "
+                                                  "tested, and the annotated starts")
+    t.add_argument("--out-prefix", required=True,
+                   help="writes <prefix>.starts.tsv, .kernel.tsv, .factors.tsv, .starts_stats.tsv")
+    t.add_argument("--start-lengths", type=read_lengths, metavar="LO-HI",
+                   help="read lengths that count (default: the longest run of lengths whose harringtonine P-sites "
+                        "peak at nt 0 of the annotated starts in every library)")
     a = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
     if a.command == "quant":
@@ -59,8 +73,10 @@ def main(argv=None):
     elif a.command == "orfs":
         orfs.run(a.bam, a.gtf, a.fasta, a.read_lengths, a.out_prefix, orfs_path=a.orfs, offsets_path=a.offsets,
                  min_support=a.min_offset_support, tol=a.tol, max_iter=a.max_iter)
-    else:
+    elif a.command == "score":
         score.run(a.orfs_prefix, a.out_prefix, frame_lengths=a.frame_lengths)
+    else:
+        starts.run(a.libraries, a.gtf, a.fasta, a.out_prefix, a.orfs, start_lengths=a.start_lengths)
 
 
 if __name__ == "__main__":
