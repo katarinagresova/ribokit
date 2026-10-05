@@ -67,7 +67,7 @@ not say: [Reading the results](docs/orfs.md#reading-the-results).
 | `<prefix>.offsets.tsv` | the same table as `quant`'s (the same BAM and read lengths give the same offsets); either command's `--offsets` accepts it. `orfs` uses only each length's phase-0 offset. |
 | `<prefix>.frames.tsv` | per read length: `offset` (the phase-0 offset, not a window), `reads`, and `frame0 frame1 frame2` — the share of P-sites in each frame of the CDS, from CDS interiors. |
 | `<prefix>.codons.tsv` | `ORF_id codon length frame0 frame1 frame2`: P-sites per codon of every ORF but the annotated CDSs, by length and frame — `score`'s input. |
-| `<prefix>.ties.tsv`, `<prefix>.stats.tsv`, `<prefix>.psites.tsv` | as for `quant`, but over every ORF and outside component, and `psites.tsv` keeps every P-site, not only those assigned to a CDS. |
+| `<prefix>.ties.tsv`, `<prefix>.stats.tsv`, `<prefix>.psites.tsv` | as for `quant`, but over every ORF and outside component: `ties.tsv` is `ORF_id tie_group`, and `psites.tsv` keeps every P-site, not only those assigned to a CDS. |
 | `<prefix>.scores.tsv` | one row per scored ORF: `ORF_id Name type start end codons codons_with_reads reads in_frame_share leads expected z p min_p q` — `p`/`q` are the frame-evidence significance and its BH correction; `min_p` is the best `p` the ORF's length and reads could reach. |
 | `<prefix>.decoys.tsv` | each ORF shifted by +1 and +2 nt and scored the same way, for null calibration. |
 | `<prefix>.score_stats.tsv` | the read lengths used and how many ORFs/decoys were scored. |

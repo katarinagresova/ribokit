@@ -391,7 +391,7 @@ Each file is written as `<prefix>.<name>`:
 | `offsets.tsv` | The same table as `quant`'s ([Method, step 3](method.md#3-p-site-offsets)): on the same BAM and read lengths, the two commands give the same offsets, and either one's `--offsets` accepts it. `orfs` uses only each length's phase-0 offset. |
 | `frames.tsv` | Per read length: `offset` (the phase-0 offset), `reads`, `frame0 frame1 frame2`. |
 | `codons.tsv` | `ORF_id codon length frame0 frame1 frame2`: P-sites per codon, length and frame, for every ORF but the annotated CDSs — `score`'s input. `codon` counts from 0, the start codon, up to and including the stop codon, which the decoys reach into. Frames are relative to the ORF's start, not to the CDS as in `frames.tsv`. Only codons and lengths with P-sites have a row. Each alignment counts 1: a read that aligns to several transcripts counts once on each, not 1/(number of alignments). |
-| `ties.tsv`, `stats.tsv` | As for `quant`, but over every ORF and outside component. |
+| `ties.tsv`, `stats.tsv` | As for `quant`, but over every ORF and outside component; `ties.tsv` has `ORF_id tie_group` instead of `Name tie_group`. |
 | `psites.tsv` | `read Name psite length`, one row per alignment with a P-site — every alignment in the length window on a GTF transcript, not only those assigned to a CDS. |
 | `scores.tsv` | One row per scored ORF: `ORF_id Name type start end codons codons_with_reads reads in_frame_share leads expected z p min_p q`. |
 | `decoys.tsv` | The same columns plus `shift` (1 or 2 nt), without `q`. `ORF_id`, `Name` and `type` are the original ORF's; `start` and `end` are the shifted copy's. |
