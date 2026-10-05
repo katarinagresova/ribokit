@@ -309,3 +309,165 @@ def make_orf_dataset(directory, seed=2, background_under_orfs=False):
     orf_path = directory / "orfs.tsv"
     orf_path.write_text("ORF_id\tName\tstart\tend\n" + "".join(f"{i}\t{n}\t{s}\t{e}\n" for i, n, s, e in table))
     return dict(fasta=fa, gtf=gtf, bam=bam_path, orfs=orf_path, txs=txs, orf_coords=orfs, truth=truth)
+
+
+# Start dataset (make_start_dataset): single-exon transcripts on the + strand, with an elongation and a
+# harringtonine library per replicate. Elongation P-sites (expected per nt): each translated ORF's codons at
+# its density (reads per codon), a start peak of START_PEAK codons at the annotated starts, a pause, and
+# untranslated background per nt (BG_* times the CDS density; BG_TRANSCRIPT without a CDS).
+# Harringtonine P-sites: translating ribosomes run off (runoff() of the codon from their ORF's start), the
+# background is raised per region (HARR_*), and each planted start adds a kernel of `worth` x density reads
+# (KERNEL: share per nt from the start's first nt). Counts are Poisson.
+START_PEAK, PAUSE = 5, 15
+BG_LEADER, BG_TRAILER, BG_TRANSCRIPT = 0.05, 0.02, 0.05
+KERNEL = {0: 0.5, **{3 * c: 0.06 for c in range(1, 6)}, **{3 * c: 0.04 for c in range(6, 11)}}
+HARR_LEADER, HARR_TRAILER, HARR_TRANSCRIPT = 4.0, 1.5, 1.5
+WORTH = 60     # a planted start: its kernel in codons of its ORF's density
+
+
+def runoff(codon):
+    """Harringtonine / elongation of translating ribosomes: 0.5 at the start, 1.4 from codon 300 on."""
+    return 0.5 + 0.9 * np.minimum(codon, 300) / 300
+
+
+def first_stop(seq, s):
+    """End of the ORF from s: the first nt of its first in-frame stop, None if there is none."""
+    for i in range(s + 3, len(seq) - 2, 3):
+        if seq[i:i + 3] in STOPS:
+            return i
+    return None
+
+
+def build_start_transcripts(rng, n_fill=30):
+    """Transcripts {name: dict(seq, cds_start, cds_end)}, ORFs {id: (name, start, end, density, worth)} (CDSs
+    included; worth = the planted start's kernel in codons of density, 0 if not planted) and the pause
+    {name: position}."""
+    rand = lambda n: "".join(rng.choice(list("ACGT"), n))
+    codons = lambda n: "".join(rng.choice(SENSE, n))
+    stop = lambda: str(rng.choice(STOPS))
+    txs, orfs, pauses = {}, {}, {}
+
+    def add(name, leader, n_codons, density, cds="", trailer=150):
+        """A transcript: leader, then a CDS of n_codons (its first codons `cds`, ATG if empty), stop, trailer."""
+        body = cds or "ATG"
+        body += codons(n_codons - len(body) // 3)
+        txs[name] = leader + body + stop() + rand(trailer)
+        orfs[f"{name}:CDS"] = (name, len(leader), len(leader) + 3 * n_codons, density, WORTH)
+        return len(leader)
+
+    for i in range(n_fill):
+        add(f"F{i}", rand(int(rng.integers(250, 450))), int(rng.integers(150, 400)), float(rng.uniform(0.5, 3)))
+    # S1: a translated ATG uORF and a translated CTG uORF
+    lead = rand(60) + "ATG" + codons(12) + stop() + rand(60)
+    s = len(lead)
+    lead += "CTG" + codons(8) + stop() + rand(60)
+    add("S1", lead, 200, 1.5)
+    orfs["S1_uATG"] = ("S1", 60, 99, 1.0, WORTH)
+    orfs["S1_uCTG"] = ("S1", s, s + 27, 1.0, WORTH)
+    # S2: a uoORF, ATG 61 nt before the CDS (another frame), its leader part of sense codons
+    lead = rand(90)
+    s = len(lead)
+    cs = add("S2", lead + "ATG" + codons(19) + rand(1), 200, 1.5)
+    orfs["S2_uoORF"] = ("S2", s, first_stop(txs["S2"], s), 1.0, WORTH)
+    # S3: an N-terminal extension, CTG 31 codons before the CDS, in frame, no stop
+    cs = add("S3", rand(80) + "CTG" + codons(30), 200, 1.5)
+    orfs["S3_ext"] = ("S3", 80, cs + 600, 1.0, WORTH)
+    # S4: a pair, CTG two codons before an ATG uORF start, in frame; the ATG is the start
+    lead = rand(80) + "CTG" + codons(1)
+    s = len(lead)
+    lead += "ATG" + codons(10) + stop()
+    add("S4", lead + rand(80), 200, 1.5)
+    orfs["S4_pairATG"] = ("S4", s, s + 33, 1.0, WORTH)
+    orfs["S4_pairCTG"] = ("S4", s - 6, s + 33, 0.0, 0)
+    # S5: a weaker start 5 codons after a strong one, in frame +1 (ATG at nt 16 of the first ORF)
+    lead = rand(60)
+    s = len(lead)
+    lead += "ATG" + codons(4) + "CAT" + str(rng.choice([c for c in SENSE if c[0] == "G"])) + codons(13) + stop()
+    add("S5", lead + rand(80), 200, 1.5)
+    orfs["S5_first"] = ("S5", s, s + 60, 1.0, WORTH)
+    orfs["S5_after"] = ("S5", s + 16, first_stop(txs["S5"], s + 16), 0.3, 10)
+    # S6: an elongation pause at an in-frame CTG, codon 80 of the CDS: not a start
+    cs = add("S6", rand(150), 250, 1.5)
+    seq = txs["S6"]
+    txs["S6"] = seq[:cs + 240] + "CTG" + seq[cs + 243:]
+    pauses["S6"] = cs + 240
+    orfs["S6_pause"] = ("S6", cs + 240, cs + 750, 0.0, 0)
+    # S7: an untranslated ATG uORF
+    add("S7", rand(100) + "ATG" + codons(10) + stop() + rand(100), 200, 1.5)
+    orfs["S7_quiet"] = ("S7", 100, 133, 0.0, 0)
+    # N1: no CDS, a translated ORF
+    txs["N1"] = rand(150) + "ATG" + codons(30) + stop() + rand(200)
+    orfs["N1_ORF"] = ("N1", 150, 243, 1.0, WORTH)
+    # untranslated candidates: the first ATG or CTG of the first ten fillers' leaders that has a stop
+    for i in range(10):
+        name = f"F{i}"
+        seq, cs = txs[name], orfs[f"{name}:CDS"][1]
+        for p in range(cs - 3):
+            if seq[p:p + 3] in ("ATG", "CTG") and first_stop(seq, p) is not None:
+                orfs[f"{name}_cand"] = (name, p, first_stop(seq, p), 0.0, 0)
+                break
+    cds = {o[0]: o for i, o in orfs.items() if i.endswith(":CDS")}
+    for i, (name, s, e, _, _) in orfs.items():
+        assert e is not None and (e - s) % 3 == 0 and txs[name][e:e + 3] in STOPS, i
+    return ({name: dict(seq=seq, cds_start=cds[name][1] if name in cds else None,
+                        cds_end=cds[name][2] if name in cds else None) for name, seq in txs.items()}, orfs, pauses)
+
+
+def start_profiles(txs, orfs, pauses):
+    """Expected P-sites per nt {name: (elongation, harringtonine)}."""
+    out = {}
+    for name, tx in txs.items():
+        n, cs, ce = len(tx["seq"]), tx["cds_start"], tx["cds_end"]
+        e, h = np.zeros(n), np.zeros(n)
+        if cs is None:
+            e += BG_TRANSCRIPT
+            h += BG_TRANSCRIPT * HARR_TRANSCRIPT
+        else:
+            d = orfs[f"{name}:CDS"][3]
+            e[:cs], h[:cs] = BG_LEADER * d, BG_LEADER * d * HARR_LEADER
+            e[ce:], h[ce:] = BG_TRAILER * d, BG_TRAILER * d * HARR_TRAILER
+            peaks = [(cs, START_PEAK * d)] + ([(pauses[name], PAUSE * d)] if name in pauses else [])
+            for p, x in peaks:
+                e[p] += x
+                h[p] += x * runoff((p - cs) // 3)
+        for orf_name, s, end, density, worth in orfs.values():
+            if orf_name == name:
+                e[s:end:3] += density
+                h[s:end:3] += density * runoff(np.arange((end - s) // 3))
+                for d, share in KERNEL.items():
+                    h[s + d] += worth * density * share
+        out[name] = (e, h)
+    return out
+
+
+def make_start_dataset(directory, seed=5, replicates=2):
+    """Reference, ORF table (the ORFs but the CDSs) and per replicate an elongation and a harringtonine BAM
+    (libs[(kind, rep)])."""
+    rng = np.random.default_rng(seed)
+    txs, orfs, pauses = build_start_transcripts(rng)
+    genome, pos = [], 0
+    for name, tx in txs.items():
+        genome += ["".join(rng.choice(list("ACGT"), 150)), tx["seq"]]
+        tx.update(gene=f"g_{name}", strand="+", gexons=[(pos + 150, pos + 150 + len(tx["seq"]))])
+        pos += 150 + len(tx["seq"])
+    fa, gtf = write_reference(directory, "".join(genome) + "A" * 150, txs)
+    prof = start_profiles(txs, orfs, pauses)
+    libs = {}
+    for rep in range(1, replicates + 1):
+        for k, kind in enumerate(("elongation", "harringtonine")):
+            reads = []
+            for name, tx in txs.items():
+                seq = tx["seq"]
+                for p in np.repeat(np.arange(len(seq)), rng.poisson(prof[name][k])):
+                    length = int(rng.choice(list(PLANTED)))
+                    ds, ps = zip(*PLANTED[length])
+                    pos5 = p - int(rng.choice(ds, p=ps))
+                    if 0 <= pos5 <= len(seq) - length:
+                        reads.append((f"{kind}{rep}_{len(reads)}_x1", seq[pos5:pos5 + length], f"{length}M",
+                                      [(name, pos5)]))
+            libs[kind, rep] = directory / f"{kind}{rep}.bam"
+            write_bam(libs[kind, rep], txs, reads)
+    table = [(i, n, s, e) for i, (n, s, e, _, _) in orfs.items() if not i.endswith(":CDS")]
+    orf_path = directory / "starts_orfs.tsv"
+    orf_path.write_text("ORF_id\tName\tstart\tend\n" + "".join(f"{i}\t{n}\t{s}\t{e}\n" for i, n, s, e in table))
+    return dict(fasta=fa, gtf=gtf, orfs=orf_path, libs=libs, txs=txs, orf_coords=orfs, pauses=pauses)
