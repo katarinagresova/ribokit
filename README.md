@@ -47,8 +47,9 @@ the CDS. `ribokit score` turns those per-codon counts into frame evidence for
 each ORF, pooled over one or more `orfs` runs (e.g. replicate libraries):
 
 ```bash
-ribokit orfs --bam sample.bam --gtf annotation.gtf --fasta genome.fa \
-    --read-lengths 18-30 --orfs candidates.tsv --out-prefix out/sample
+ribokit orfs --bam sample_rep1.bam --gtf annotation.gtf --fasta genome.fa \
+    --read-lengths 18-30 --orfs candidates.tsv --out-prefix out/sample_rep1
+# the same for sample_rep2, with --offsets out/sample_rep1.offsets.tsv
 ribokit score --orfs-prefix out/sample_rep1 out/sample_rep2 --out-prefix out/pooled
 ```
 
