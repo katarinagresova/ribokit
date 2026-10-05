@@ -33,7 +33,8 @@ harringtonine reads in its window (BH counts every start codon of the class: the
 The codons 1-10 of an annotated start are not called. Then the scan calls starts in the order of p:
 a start with q < 0.05 is called if no called start stops it, and it stops the candidates within 8 nt
 and in its codons 1-10 (harringtonine raises them). Each called start gives an ORF to its first
-in-frame stop, typed against the annotated CDS.
+in-frame stop, typed against the annotated CDS. The catalogue is the uORFs and uoORFs of the called
+starts and every annotated CDS.
 """
 import logging
 from dataclasses import dataclass
@@ -590,10 +591,15 @@ def run(sheet_path, gtf, fasta, out_prefix, orfs_path=None, scan=False, start_le
         out["end"] = pd.Series(end, dtype="Int64").mask(~has_stop)
         out["type"] = np.where(has_stop, orf_types(nt, end, layout.cds_start[t], layout.cds_end[t]), "no stop")
         cols += ["called", "stopped_by", "end", "type"]
-        orfs_out = out[called & has_stop & (out["type"] != "CDS").to_numpy()]
-        orfs_out = orfs_out.rename(columns={"codon": "start_codon"})[
-            ["ORF_id", "Name", "start", "end", "type", "start_codon", "harringtonine", "elongation", "expected",
-             "enrichment", "p", "q"]]
+        orf_cols = ["ORF_id", "Name", "start", "end", "type", "start_codon", "harringtonine", "elongation",
+                    "expected", "enrichment", "p", "q"]
+        typ = out["type"].to_numpy()
+        orfs_out = out[called & has_stop & (typ != "CDS")].rename(columns={"codon": "start_codon"})[orf_cols]
+        # the catalogue: the uORFs and uoORFs of the called starts, and every annotated CDS (end: the annotation's)
+        cat = out[(called & np.isin(typ, ["uORF", "uoORF"])) | (typ == "CDS")].rename(columns={"codon": "start_codon"})
+        cat = cat.assign(end=np.where(cat["type"] == "CDS", layout.cds_end[t[cat.index]], cat["end"]))[orf_cols]
+        st.update({f"catalogue {k}": int(v) for k, v in cat["type"].value_counts().sort_index().items()})
+        cat.to_csv(f"{out_prefix}.catalogue.tsv", sep="\t", index=False, na_rep="NA")
         st.update(called=int(called.sum()), called_without_stop=int((called & ~has_stop).sum()),
                   stopped=int((stopped_by >= 0).sum()))
         st.update({f"start_orfs {k}": int(v) for k, v in orfs_out["type"].value_counts().sort_index().items()})

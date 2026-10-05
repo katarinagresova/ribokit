@@ -174,11 +174,27 @@ def test_scan_calls(started):
     assert (so["type"] != "CDS").all() and set(so.columns[:4]) == {"ORF_id", "Name", "start", "end"}
 
 
-def test_scan_orfs_feed_orfs(started, tmp_path):
-    # start_orfs.tsv is an ORF table for `ribokit orfs`: every row is kept
+@pytest.mark.parametrize("table", ["start_orfs", "catalogue"])
+def test_scan_orfs_feed_orfs(started, tmp_path, table):
+    # start_orfs.tsv and catalogue.tsv are ORF tables for `ribokit orfs`: every row is kept, and the catalogue's CDS
+    # rows are the annotated CDSs (none added)
     d, data = started["dir"], started["data"]
     _, _, _, st = orfs.run(str(data["libs"]["elongation", 1]), str(data["gtf"]), str(data["fasta"]), WINDOW,
-                           str(tmp_path / "o"), orfs_path=str(d / "scan.start_orfs.tsv"),
+                           str(tmp_path / "o"), orfs_path=str(d / f"scan.{table}.tsv"),
                            offsets_path=str(d / "pool.offsets.tsv"))
-    assert st["orf_table_rows"] == len(pd.read_csv(d / "scan.start_orfs.tsv", sep="\t"))
+    assert st["orf_table_rows"] == len(pd.read_csv(d / f"scan.{table}.tsv", sep="\t"))
     assert sum(v for k, v in st.items() if k.startswith("orfs_dropped_")) == 0
+    if table == "catalogue":
+        assert st["orfs_cds_added"] == 0
+
+
+def test_catalogue(started):
+    out = started["scan"]
+    cat = pd.read_csv(started["dir"] / "scan.catalogue.tsv", sep="\t").set_index("ORF_id")
+    calls = out[out["called"] & out["type"].isin(["uORF", "uoORF"])]
+    assert set(cat.index[cat["type"] != "CDS"]) == set(calls["ORF_id"])
+    assert (cat["type"] == "CDS").sum() == 37
+    data = started["data"]
+    for i in ("S1_uATG", "S2_uoORF", "N1_ORF", "S3_ext"):
+        n, s, e, _, _ = data["orf_coords"][i]
+        assert (f"{n}_{s + 1}" in cat.index) == (i in ("S1_uATG", "S2_uoORF")), i   # no extension, no ORF without a CDS

@@ -63,7 +63,8 @@ def main(argv=None):
                                       "annotated starts")
     which.add_argument("--scan", action="store_true",
                        help="test every start codon (ATG and its near-cognates) with harringtonine reads, call starts "
-                            "and write their ORFs (<prefix>.start_orfs.tsv)")
+                            "and write their ORFs (<prefix>.start_orfs.tsv) and the catalogue: their uORFs and uoORFs "
+                            "and the annotated CDSs (<prefix>.catalogue.tsv)")
     t.add_argument("--out-prefix", required=True,
                    help="writes <prefix>.starts.tsv, .kernel.tsv, .factors.tsv, .starts_stats.tsv")
     t.add_argument("--start-lengths", type=read_lengths, metavar="LO-HI",
