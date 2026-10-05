@@ -11,8 +11,8 @@ evidence for uORFs and other ORFs besides the CDS (`ribokit orfs` /
 ## Why
 
 Ribo-seq quantification needs the isoform-length term accounted for, a fit
-that actually converges from a fixed, deterministic start, and read-length
-windows chosen from the data rather than assumed. Counting evidence for a
+that actually converges from a fixed, deterministic start, and P-site offsets
+estimated per read length from the data rather than assumed. Counting evidence for a
 uORF additionally needs a reading frame that isn't thrown away before it's
 checked, and a null that accounts for the host CDS's own off-frame noise.
 ribokit does all of this, benchmarked against real runs rather than
