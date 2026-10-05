@@ -27,10 +27,12 @@ class Alignments:
     length: np.ndarray
     n_reads: int
     read_names: list     # read name per read index, in order of first appearance
+    ref: np.ndarray = None   # BAM reference index, one per alignment
+    refs: list = None        # transcript id per BAM reference
 
     def subset(self, mask):
         return Alignments(self.read[mask], self.tx[mask], self.pos5[mask], self.length[mask],
-                           self.n_reads, self.read_names)
+                           self.n_reads, self.read_names, self.ref[mask], self.refs)
 
     def count_reads(self):
         return int(np.unique(self.read).size)
@@ -56,13 +58,17 @@ def read_bam(path, anno, stats):
     """All forward alignments with an acceptable CIGAR. stats gets the read counts."""
     index = anno.index()
     names = {}
-    read, tx, pos5, length = [], [], [], []
+    read, tx, ref, pos5, length = [], [], [], [], []
     n_bad_cigar_aln = 0
     with pysam.AlignmentFile(path, "rb", check_sq=False) as bam:
-        ref_tx = np.array([index.get(r.split("|", 1)[0], -1) for r in bam.references], dtype=np.int64)
+        refs = [r.split("|", 1)[0] for r in bam.references]
+        ref_tx = np.array([index.get(r, -1) for r in refs], dtype=np.int64)
         ref_len = np.array(bam.lengths, dtype=np.int64)
         known = ref_tx >= 0
-        bad = known & (ref_len != anno.tx_len[np.maximum(ref_tx, 0)])
+        if not known.any():
+            raise ValueError(f"no BAM reference is a transcript with a CDS in the GTF (BAM: {', '.join(refs[:3])}; "
+                             f"GTF: {', '.join(anno.tx[:3])}): do the transcript ids differ, e.g. in a version suffix?")
+        bad = known &(ref_len != anno.tx_len[np.maximum(ref_tx, 0)])
         if bad.any():
             i = np.flatnonzero(bad)[0]
             raise ValueError(f"{bam.references[i]} is {ref_len[i]} nt in the BAM but "
@@ -79,12 +85,14 @@ def read_bam(path, anno, stats):
                 continue
             read.append(r)
             tx.append(ref_tx_list[a.reference_id])
+            ref.append(a.reference_id)
             pos5.append(a.reference_start)
             length.append(fp)
     stats["reads_forward"] = len(names)
     stats["alignments_dropped_cigar"] = n_bad_cigar_aln
     aln = Alignments(np.array(read, dtype=np.int64), np.array(tx, dtype=np.int64),
-                     np.array(pos5, dtype=np.int64), np.array(length, dtype=np.int64), len(names), list(names))
+                     np.array(pos5, dtype=np.int64), np.array(length, dtype=np.int64), len(names), list(names),
+                     np.array(ref, dtype=np.int64), refs)
     stats["reads_cigar_ok"] = aln.count_reads()
     log.info("%s: %d forward reads, %d with an acceptable alignment (%d alignments dropped for their CIGAR)",
              path, len(names), stats["reads_cigar_ok"], n_bad_cigar_aln)

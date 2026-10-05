@@ -198,3 +198,114 @@ def make_dataset(directory, seed=1):
     bam_path = directory / "reads.bam"
     write_bam(bam_path, txs, reads)
     return dict(fasta=fa, gtf=gtf, gtf_with_stop=gtf_with_stop, bam=bam_path, txs=txs, truth=truth, reads=reads)
+
+
+# ORF dataset (make_orf_dataset): single-exon transcripts on the + strand, ORFs besides the CDSs.
+# Reads per source: a CDS or ORF (P-sites on its codons, frames from PLANTED), or background
+# (BACKGROUND reads per nt, uniform over the positions in no ORF).
+ORF_READS = {"U1:CDS": 6000, "U1_uORF": 400, "U2_main": 2000, "U2_uoORF": 300, "U3:CDS": 2000, "U3_uoORF": 300,
+             "U4:CDS": 2000, "U5:CDS": 2000, "U5_uoORF": 600, "N1_ORF": 300}
+# reads with their P-site on the start codon: U1_CUG has no others, U4's CDS has a start peak whose
+# reads 1-2 nt long at the 5' end put their P-site in U4_uoORF's leader part (untranslated)
+PEAKS = {"U1_CUG": 150, "U4:CDS": 150}
+BACKGROUND = 0.4
+
+
+def build_orf_transcripts(rng):
+    """Transcripts {name: dict(seq, cds_start, cds_end)} and ORFs {id: (name, start, end)}, CDSs included."""
+    rand = lambda n: "".join(rng.choice(list("ACGT"), n))
+    codons = lambda n: "".join(rng.choice(SENSE, n))
+    stop = lambda: str(rng.choice(STOPS))
+    txs, orfs = {}, {}
+    # U1: a translated uORF, an untranslated one and a CUG ORF, then the CDS
+    seq = ""
+    for orf_id, gap, start, n in (("U1_uORF", 30, "ATG", 20), ("U1_cand", 24, "ATG", 15), ("U1_CUG", 30, "CTG", 10)):
+        seq += rand(gap)
+        orfs[orf_id] = ("U1", len(seq), len(seq) + 3 + 3 * n)
+        seq += start + codons(n) + stop()
+    seq += rand(40)
+    orfs["U1:CDS"] = ("U1", len(seq), len(seq) + 450)
+    seq += "ATG" + codons(149) + stop() + rand(120)
+    txs["U1"] = seq
+    # U2, U3, U4, U5: a uoORF in frame 1 / 2 / 1 / 1 of the CDS, from 60 nt (U5: 150 nt) upstream of
+    # it to 90 nt into it. Its stop spans CDS codons 30 and 31.
+    for name, f, up in (("U2", 1, 60), ("U3", 2, 60), ("U4", 1, 60), ("U5", 1, 150)):
+        cs = up + 90
+        cds = ["ATG"] + list(rng.choice(SENSE, 149))
+        cds[30], cds[31] = ("CTA", "AAA") if f == 1 else ("CCT", "AAA")
+        s, e = cs - up + f, cs + 90 + f
+        txs[name] = rand(s) + "ATG" + rand(cs - s - 3) + "".join(cds) + stop() + rand(100)
+        orfs[f"{name}_uoORF"] = (name, s, e)
+        orfs["U2_main" if name == "U2" else f"{name}:CDS"] = (name, cs, cs + 450)
+    # P1: no CDS, holds 240 nt of U1's CDS (pseudogene-like)
+    cs1 = orfs["U1:CDS"][1]
+    txs["P1"] = rand(80) + txs["U1"][cs1 + 150:cs1 + 390] + rand(80)
+    # N1: no CDS, a translated ORF
+    orfs["N1_ORF"] = ("N1", 100, 178)
+    txs["N1"] = rand(100) + "ATG" + codons(25) + stop() + rand(150)
+    for name, s, e in orfs.values():
+        assert (e - s) % 3 == 0 and txs[name][e:e + 3] in STOPS
+    cds = {"U1": "U1:CDS", "U2": "U2_main", "U3": "U3:CDS", "U4": "U4:CDS", "U5": "U5:CDS"}
+    return {name: dict(seq=seq, cds_start=orfs[cds[name]][1] if name in cds else None,
+                       cds_end=orfs[cds[name]][2] if name in cds else None) for name, seq in txs.items()}, orfs
+
+
+def outside_id(txs, orfs, name, p):
+    """The outside component holding position p of transcript `name`, None if p is in an ORF."""
+    if any(n == name and s <= p < e for n, s, e in orfs.values()):
+        return None
+    tx = txs[name]
+    if tx["cds_start"] is None:
+        return f"{name}:transcript"
+    return f"{name}:leader" if p < tx["cds_start"] else f"{name}:trailer"
+
+
+def make_orf_dataset(directory, seed=2, background_under_orfs=False):
+    """Reference, BAM and ORF table (with rows to drop, and U2's CDS listed as U2_main).
+    truth[component] = reads drawn from it whose P-site at the phase-0 offset (12) is in it
+    (ORF: its span; outside component: its positions); the rest are counted in truth["leaked"].
+    background_under_orfs: background over every position, as for the score; truth then counts
+    the background drawn under ORFs as leaked."""
+    rng = np.random.default_rng(seed)
+    txs, orfs = build_orf_transcripts(rng)
+    genome, pos = [], 0
+    for tx in txs.values():
+        genome += ["".join(rng.choice(list("ACGT"), 150)), tx["seq"]]
+        tx.update(gene=f"g_{len(genome)}", strand="+", gexons=[(pos + 150, pos + 150 + len(tx["seq"]))])
+        pos += 150 + len(tx["seq"])
+    fa, gtf = write_reference(directory, "".join(genome) + "A" * 150, txs)
+
+    sources = []   # (component, transcript, P-site)
+    for orf_id, (name, s, e) in orfs.items():
+        sources += [(orf_id, name, p) for p in s + 3 * rng.integers(0, (e - s) // 3, ORF_READS.get(orf_id, 0))]
+    for orf_id, n in PEAKS.items():
+        sources += [(orf_id, orfs[orf_id][0], orfs[orf_id][1])] * n
+    for name, tx in txs.items():
+        free = [p for p in range(len(tx["seq"])) if background_under_orfs or outside_id(txs, orfs, name, p)]
+        sources += [(outside_id(txs, orfs, name, p) or "background", name, p)
+                    for p in rng.choice(free, int(BACKGROUND * len(free)))]
+    truth, reads = {}, []
+    for comp, name, p in sources:
+        seq = txs[name]["seq"]
+        length = rng.choice(list(PLANTED))
+        ds, ps = zip(*PLANTED[length])
+        pos5 = p - rng.choice(ds, p=ps)
+        if pos5 < 0 or pos5 + length > len(seq):
+            continue
+        q = pos5 + 12
+        n, s, e = orfs.get(comp, (name, -1, -1))
+        own = s <= q < e if comp in orfs else outside_id(txs, orfs, name, q) == comp
+        truth[comp if own else "leaked"] = truth.get(comp if own else "leaked", 0) + 1
+        fp = seq[pos5:pos5 + length]
+        reads.append((f"orf_{len(reads)}_x1", fp, f"{length}M",
+                      [(t, i) for t, tx in txs.items() for i in _find_all(tx["seq"], fp)]))
+    bam_path = directory / "orfs.bam"
+    write_bam(bam_path, txs, reads)
+
+    table = [(i, n, s, e) for i, (n, s, e) in orfs.items() if not i.endswith(":CDS")]
+    s1 = orfs["U1_uORF"][1]
+    table += [("bad_len", "U1", s1, s1 + 62), ("bad_stop", "U1", s1, s1 + 60),
+              ("bad_off", "N1", 300, 330), ("bad_tx", "nope", 0, 30)]
+    orf_path = directory / "orfs.tsv"
+    orf_path.write_text("ORF_id\tName\tstart\tend\n" + "".join(f"{i}\t{n}\t{s}\t{e}\n" for i, n, s, e in table))
+    return dict(fasta=fa, gtf=gtf, bam=bam_path, orfs=orf_path, txs=txs, orf_coords=orfs, truth=truth)

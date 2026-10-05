@@ -14,6 +14,9 @@ questions:
    CDS's density of ribosomes, accelerated so that near-identical CDSs don't
    take forever to split ([step 6](#6-em)).
 
+This page covers `ribokit quant`. For uORFs and other ORFs besides the CDS,
+see [ORF counting and frame scores](orfs.md) (`ribokit orfs` / `ribokit score`).
+
 ## At a glance
 
 ```mermaid
@@ -26,15 +29,15 @@ flowchart TB
     given[/"or: offsets from another run"/] -.-> assign
     assign --> ec["5 · Equivalence classes: reads grouped by compatible CDSs"]
     ec --> em["6 · EM: expected reads per CDS"]
-    em --> out[/"quant.tsv · offsets.tsv · ties.tsv · stats.tsv"/]
+    em --> out[/"quant.tsv · offsets.tsv · ties.tsv · stats.tsv · psites.tsv"/]
 ```
 
 | Problem | What ribokit does |
 |---|---|
-| The P-site sits about 12 nt from a footprint's 5′ end, and the exact distance depends on footprint length and trimming. | Estimates one offset per read length and phase from the reads that span start and stop codons ([step 3](#3-p-site-offsets)). |
+| The P-site sits about 12 nt from a footprint's 5′ end, and the exact distance depends on footprint length and trimming. | Estimates one offset per read length and phase from the reads that span the start codon or the last sense codon ([step 3](#3-p-site-offsets)). |
 | Footprints that overlap a CDS were not all made by ribosomes translating it, e.g. ribosomes in the 5′ UTR next to the start codon. | Counts a read for a CDS only if its P-site is inside it ([step 4](#4-assignment)). |
 | Reads fit several CDSs when transcripts share sequence. | Splits them by EM with a length term, so shared reads go by density, not by read count ([step 6](#6-em)). |
-| Some CDSs cannot be told apart by any read. | Lists them in `ties.tsv` instead of reporting a split the data cannot support. |
+| Some CDSs cannot be told apart by any read. | Lists them in `ties.tsv`: the split between them comes from the model, not from the data ([step 6](#ties)). |
 | Library preparation adds untemplated nucleotides at the 5′ end. | Excludes a 5′ soft clip from the footprint instead of dropping the read ([step 2](#2-reads)). |
 | Results must be reproducible. | No randomness anywhere; a rerun gives byte-identical output; an EM that does not converge is an error. |
 
@@ -115,7 +118,8 @@ start codon or the last sense codon**:
 
 ribokit scores each candidate offset by the number of reads whose P-site it
 puts inside the CDS (a read with *n* alignments counts 1/*n* at each). The reads
-that span the start or last codon are the class's *support*.
+that cover the first nt of the start codon or of the last sense codon are the
+class's *support*.
 
 ### One window per read length
 
@@ -155,8 +159,8 @@ three phases.
 
 ### What `offsets.tsv` reports
 
-One row per (length, phase): `offset`, `support` (weighted reads spanning the
-start or last codon), `z` and `reads`.
+One row per (length, phase): `offset`, `support` (weighted reads that cover the
+first nt of the start codon or of the last sense codon), `z` and `reads`.
 
 `z` says how firmly the data pin this phase's offset. Windows next to each other
 differ in one phase only: moving the centre from $c$ to $c + 1$ swaps offset
@@ -285,8 +289,9 @@ are heading, instead of taking them one at a time:
    estimate; otherwise fall back to $\alpha^{(2)}$, which plain EM already
    guarantees is no worse.
 
-Each cycle costs two or three plain EM steps, which is what `--max-iter` and
-`stats.tsv`'s `em_iterations` count — not cycles. The destination is the same
+Each cycle costs three plain EM steps, which is what `--max-iter` and
+`stats.tsv`'s `em_iterations` count — not cycles; the stop rule is checked on
+each cycle's first step. The destination is the same
 fixed point plain EM would reach (counts never go negative and the
 log-likelihood never drops along the way); SQUAREM only shortens the path, by
 extrapolating where the plain iteration is still heading rather than
@@ -313,10 +318,14 @@ With **A and B are identical**, no setting changes the 50:50 split.
 ### Ties
 
 CDSs that have no unique reads and fit exactly the same reads (e.g. identical
-paralogs, or isoforms that differ only in their UTRs) cannot be told apart. Their
-split reflects the EM's starting point, not the data. ribokit lists them in
-`ties.tsv` (`Name`, `tie_group`) so that you can sum them or analyse them as a
-group.
+paralogs, isoforms that differ only in their UTRs, or a CDS and an in-frame
+N-terminal extension of it that no read reaches) cannot be told apart. Their
+split comes from the model, not from the data. CDSs of the same length keep the
+EM's even start. Of CDSs of different lengths, the shortest gets almost all the
+reads: the same reads are denser on a shorter CDS, so each EM step multiplies
+a longer CDS's count, relative to a shorter one's, by
+$L_\text{short} / L_\text{long}$. ribokit lists them in `ties.tsv` (`Name`,
+`tie_group`) so that you can sum them or analyse them as a group.
 
 ## 7. Outputs
 
@@ -328,6 +337,7 @@ Each file is written as `<prefix>.<name>`, with the prefix from `--out-prefix`:
 | `offsets.tsv` | The offsets, with support and $z$ ([step 3](#what-offsetstsv-reports)). |
 | `ties.tsv` | CDSs that no read tells apart. |
 | `stats.tsv` | Reads left after each filter, EM steps and log-likelihood. |
+| `psites.tsv` | `read Name psite length`, one row per alignment whose P-site is in a CDS ([step 4](#4-assignment)): `psite` is the 0-based transcript position of the P-site's first nt, always the first nt of a codon of the CDS, and `length` is the footprint length. A read with several such alignments has a row for each. |
 
 `NumReads` sums to `reads_assigned`. `ritpm` is the density, scaled to sum to
 one million:
@@ -373,8 +383,8 @@ classes; SQUAREM converges in 10 EM steps.
 | CDS | true reads | `NumReads` | |
 |---|---:|---:|---|
 | A1 | 3,198 | 3,198.0 | the only CDS of its gene |
-| B1 | 2,132 | 2,045.1 | B1 and B2 share most of their CDS; |
-| B2 | 3,270 | 3,357.9 | B1's share is off by 1.6 percentage points |
+| B1 | 2,132 | 2,045.0 | B1 and B2 share most of their CDS; |
+| B2 | 3,270 | 3,358.0 | B1's share is off by 1.6 percentage points |
 | C1 | 1,614 | 1,614.5 | identical CDSs (only their 5′ UTRs differ): |
 | C2 | 1,614 | 1,614.5 | listed in `ties.tsv` |
 | D1 | 2,646 | 2,646.0 | the only CDS of its gene |
@@ -384,11 +394,23 @@ classes; SQUAREM converges in 10 EM steps.
 - No random numbers anywhere.
 - The EM starts from an even split; ties between offset windows go to the
   smaller centre.
-- Transcripts and outputs are sorted by name.
+- Transcripts and outputs are sorted by name, except `psites.tsv`, which keeps
+  the BAM's order.
 - An EM that does not converge raises an error.
 
 A rerun on the same input gives byte-identical output files; the tests check
 this.
+
+Inputs that should give the same counts but are not the same files can still
+move counts a little: the same reads in another order in the BAM, a GTF with
+more or fewer transcripts (even ones without reads), or another `--tol`. The
+first two change the order of the EM's sums and so their rounding; `--tol`
+changes where the EM stops. Where the likelihood is almost flat, e.g. between
+near-identical CDSs, the EM stops a little short of its maximum
+([The iteration](#the-iteration)), and these changes move that stop point. On
+real data, removing some transcripts' alignments from a BAM, which changes
+the order of the other reads, moved counts by 1.5e-6 reads or less. Compare
+such runs with a tolerance, not byte for byte.
 
 ## References
 

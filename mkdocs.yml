@@ -5,7 +5,8 @@ repo_url: https://github.com/katarinagresova/ribokit
 docs_dir: docs
 nav:
   - Home: index.md
-  - Method: method.md
+  - "Method: quant": method.md
+  - "Method: ORF counting": orfs.md
 theme:
   name: material
 markdown_extensions:
@@ -30,3 +31,4 @@ extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
   - javascripts/offset-explorer.js
   - javascripts/em-explorer.js
+  - javascripts/score-explorer.js

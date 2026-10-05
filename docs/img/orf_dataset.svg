@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 422" width="780" height="422" font-family="Roboto, Helvetica Neue, Arial, sans-serif" font-size="13" fill="#263238">
+<!-- generated from tests/synth.py (build_orf_transcripts; reads: make_orf_dataset's truth, seed 2), to scale -->
+<rect width="780" height="422" fill="white"/>
+<rect x="60.0" y="14.0" width="18.0" height="10.0" fill="#4c78a8" rx="2"/>
+<text x="84.0" y="23.0" text-anchor="start" font-size="11" fill="#546e7a" font-weight="normal" font-style="normal">CDS</text>
+<rect x="140.0" y="14.0" width="18.0" height="10.0" fill="#2a9d8f" rx="2"/>
+<text x="164.0" y="23.0" text-anchor="start" font-size="11" fill="#546e7a" font-weight="normal" font-style="normal">uORF</text>
+<rect x="220.0" y="14.0" width="18.0" height="10.0" fill="#e76f51" rx="2"/>
+<text x="244.0" y="23.0" text-anchor="start" font-size="11" fill="#546e7a" font-weight="normal" font-style="normal">uoORF</text>
+<rect x="300.0" y="14.0" width="18.0" height="10.0" fill="#607d8b" rx="2"/>
+<text x="324.0" y="23.0" text-anchor="start" font-size="11" fill="#546e7a" font-weight="normal" font-style="normal">other</text>
+<rect x="380.0" y="14.0" width="18.0" height="10.0" fill="white" rx="2" stroke="#78909c" stroke-dasharray="3,2"/>
+<text x="404.0" y="23.0" text-anchor="start" font-size="11" fill="#546e7a" font-weight="normal" font-style="normal">not translated</text>
+<rect x="495.0" y="16.0" width="18.0" height="6.0" fill="#9aa5b1" rx="2"/>
+<text x="519.0" y="23.0" text-anchor="start" font-size="11" fill="#546e7a" font-weight="normal" font-style="normal">outside components</text>
+<text x="50.0" y="57.0" text-anchor="end" font-size="13" fill="#263238" font-weight="bold" font-style="normal">U1</text>
+<rect x="60.0" y="49.0" width="442.0" height="6.0" fill="#9aa5b1" rx="2"/>
+<rect x="204.0" y="43.0" width="234.0" height="18.0" fill="#4c78a8" rx="2"/>
+<rect x="204.0" y="43.0" width="4.7" height="18.0" fill="#2f5786"/>
+<text x="321.0" y="57.0" text-anchor="middle" font-size="11.5" fill="white" font-weight="bold" font-style="normal">CDS · 5,984</text>
+<rect x="75.6" y="65.0" width="32.8" height="11.0" fill="#2a9d8f" rx="2" opacity="0.9"/>
+<rect x="75.6" y="65.0" width="3.1" height="11.0" fill="#000000" opacity="0.25"/>
+<text x="92.0" y="87.0" text-anchor="middle" font-size="10.5" fill="#2a9d8f" font-weight="normal" font-style="normal">396</text>
+<rect x="122.4" y="65.0" width="25.0" height="11.0" fill="white" rx="2" stroke="#2a9d8f" stroke-dasharray="3,2"/>
+<text x="134.9" y="87.0" text-anchor="middle" font-size="10.5" fill="#2a9d8f" font-weight="normal" font-style="normal">0</text>
+<rect x="164.5" y="65.0" width="17.2" height="11.0" fill="#2a9d8f" rx="2" opacity="0.9"/>
+<rect x="164.5" y="65.0" width="3.1" height="11.0" fill="#000000" opacity="0.25"/>
+<rect x="164.5" y="61.0" width="1.6" height="15.0" fill="#2a9d8f"/>
+<text x="186.7" y="87.0" text-anchor="start" font-size="10.5" fill="#2a9d8f" font-weight="normal" font-style="normal">93, on its start codon</text>
+<path d="M282.0,65 v4 h124.8 v-4" fill="none" stroke="#4c78a8" stroke-width="1.5"/>
+<text x="412.8" y="74.0" text-anchor="start" font-size="10.5" fill="#4c78a8" font-weight="normal" font-style="normal">P1 holds these 240 nt</text>
+<text x="768.0" y="57.0" text-anchor="end" font-size="11" fill="#78909c" font-weight="normal" font-style="normal">uORF, untranslated candidate, CTG peak</text>
+<text x="50.0" y="111.0" text-anchor="end" font-size="13" fill="#263238" font-weight="bold" font-style="normal">U2</text>
+<rect x="60.0" y="103.0" width="365.6" height="6.0" fill="#9aa5b1" rx="2"/>
+<rect x="138.0" y="97.0" width="234.0" height="18.0" fill="#4c78a8" rx="2"/>
+<rect x="138.0" y="97.0" width="4.7" height="18.0" fill="#2f5786"/>
+<text x="255.0" y="111.0" text-anchor="middle" font-size="11.5" fill="white" font-weight="bold" font-style="normal">CDS · 1,996</text>
+<rect x="107.3" y="119.0" width="78.0" height="11.0" fill="#e76f51" rx="2" opacity="0.9"/>
+<rect x="107.3" y="119.0" width="3.1" height="11.0" fill="#000000" opacity="0.25"/>
+<text x="146.3" y="141.0" text-anchor="middle" font-size="10.5" fill="#e76f51" font-weight="normal" font-style="normal">299</text>
+<text x="768.0" y="111.0" text-anchor="end" font-size="11" fill="#78909c" font-weight="normal" font-style="normal">translated uoORF, frame 1 of the CDS</text>
+<text x="50.0" y="165.0" text-anchor="end" font-size="13" fill="#263238" font-weight="bold" font-style="normal">U3</text>
+<rect x="60.0" y="157.0" width="365.6" height="6.0" fill="#9aa5b1" rx="2"/>
+<rect x="138.0" y="151.0" width="234.0" height="18.0" fill="#4c78a8" rx="2"/>
+<rect x="138.0" y="151.0" width="4.7" height="18.0" fill="#2f5786"/>
+<text x="255.0" y="165.0" text-anchor="middle" font-size="11.5" fill="white" font-weight="bold" font-style="normal">CDS · 1,997</text>
+<rect x="107.8" y="173.0" width="78.0" height="11.0" fill="#e76f51" rx="2" opacity="0.9"/>
+<rect x="107.8" y="173.0" width="3.1" height="11.0" fill="#000000" opacity="0.25"/>
+<text x="146.8" y="195.0" text-anchor="middle" font-size="10.5" fill="#e76f51" font-weight="normal" font-style="normal">296</text>
+<text x="768.0" y="165.0" text-anchor="end" font-size="11" fill="#78909c" font-weight="normal" font-style="normal">translated uoORF, frame 2 of the CDS</text>
+<text x="50.0" y="219.0" text-anchor="end" font-size="13" fill="#263238" font-weight="bold" font-style="normal">U4</text>
+<rect x="60.0" y="211.0" width="365.6" height="6.0" fill="#9aa5b1" rx="2"/>
+<rect x="138.0" y="205.0" width="234.0" height="18.0" fill="#4c78a8" rx="2"/>
+<rect x="138.0" y="205.0" width="4.7" height="18.0" fill="#2f5786"/>
+<text x="255.0" y="219.0" text-anchor="middle" font-size="11.5" fill="white" font-weight="bold" font-style="normal">CDS · 2,103</text>
+<rect x="107.3" y="227.0" width="78.0" height="11.0" fill="white" rx="2" stroke="#e76f51" stroke-dasharray="3,2"/>
+<text x="107.3" y="249.0" text-anchor="start" font-size="10.5" fill="#e76f51" font-weight="normal" font-style="normal">0 (gets the CDS's start peak)</text>
+<text x="768.0" y="219.0" text-anchor="end" font-size="11" fill="#78909c" font-weight="normal" font-style="normal">untranslated uoORF, frame 1</text>
+<text x="50.0" y="273.0" text-anchor="end" font-size="13" fill="#263238" font-weight="bold" font-style="normal">U5</text>
+<rect x="60.0" y="265.0" width="412.4" height="6.0" fill="#9aa5b1" rx="2"/>
+<rect x="184.8" y="259.0" width="234.0" height="18.0" fill="#4c78a8" rx="2"/>
+<rect x="184.8" y="259.0" width="4.7" height="18.0" fill="#2f5786"/>
+<text x="301.8" y="273.0" text-anchor="middle" font-size="11.5" fill="white" font-weight="bold" font-style="normal">CDS · 1,995</text>
+<rect x="107.3" y="281.0" width="124.8" height="11.0" fill="#e76f51" rx="2" opacity="0.9"/>
+<rect x="107.3" y="281.0" width="3.1" height="11.0" fill="#000000" opacity="0.25"/>
+<text x="169.7" y="303.0" text-anchor="middle" font-size="10.5" fill="#e76f51" font-weight="normal" font-style="normal">600</text>
+<text x="768.0" y="273.0" text-anchor="end" font-size="11" fill="#78909c" font-weight="normal" font-style="normal">translated uoORF, 150 nt before the CDS</text>
+<text x="50.0" y="327.0" text-anchor="end" font-size="13" fill="#263238" font-weight="bold" font-style="normal">N1</text>
+<rect x="60.0" y="319.0" width="172.1" height="6.0" fill="#9aa5b1" rx="2"/>
+<rect x="112.0" y="335.0" width="40.6" height="11.0" fill="#607d8b" rx="2" opacity="0.9"/>
+<rect x="112.0" y="335.0" width="3.1" height="11.0" fill="#000000" opacity="0.25"/>
+<text x="132.3" y="357.0" text-anchor="middle" font-size="10.5" fill="#607d8b" font-weight="normal" font-style="normal">297</text>
+<text x="768.0" y="327.0" text-anchor="end" font-size="11" fill="#78909c" font-weight="normal" font-style="normal">no CDS: an “other” ORF</text>
+<text x="50.0" y="381.0" text-anchor="end" font-size="13" fill="#263238" font-weight="bold" font-style="normal">P1</text>
+<rect x="60.0" y="373.0" width="208.0" height="6.0" fill="#9aa5b1" rx="2"/>
+<rect x="101.6" y="370.0" width="124.8" height="12.0" fill="none" stroke="#4c78a8" stroke-width="1.5" rx="2"/>
+<text x="276.0" y="380.0" text-anchor="start" font-size="10.5" fill="#78909c" font-weight="normal" font-style="normal">153 of its own</text>
+<text x="768.0" y="381.0" text-anchor="end" font-size="11" fill="#78909c" font-weight="normal" font-style="normal">no CDS: 240 nt of U1’s CDS</text>
+</svg>

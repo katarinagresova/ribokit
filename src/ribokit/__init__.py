@@ -1,2 +1,3 @@
-"""ribokit: Ribo-seq analysis. Milestone 1: CDS quantification replacing RiboStan in wf-eIF-deltaTE."""
-__version__ = "0.1.0"
+"""ribokit: Ribo-seq analysis. P-site offsets and CDS quantification (quant), reads per ORF in its reading
+frame (orfs), frame evidence per ORF (score)."""
+__version__ = "0.2.0"
