@@ -23,11 +23,12 @@ def add_shared(sp, outputs):
     sp.add_argument("--out-prefix", required=True, help=f"writes <prefix>.{outputs}")
     sp.add_argument("--offsets", help="use this offsets.tsv instead of estimating offsets from the BAM")
     sp.add_argument("--min-offset-support", type=float, default=30,
-                    help="reads spanning a start or stop codon needed to give a read length offsets")
+                    help="reads covering the first nt of a start codon or of a last sense codon (1/n for a read "
+                         "with n alignments) needed to give a read length offsets")
     sp.add_argument("--tol", type=float, default=1e-3,
                     help="EM stops when one step moves no expected count by this many reads")
     sp.add_argument("--max-iter", type=int, default=100_000,
-                    help="give up after this many EM steps (SQUAREM counts 2-3 per cycle)")
+                    help="give up after this many EM steps (3 per SQUAREM cycle)")
 
 
 def main(argv=None):
