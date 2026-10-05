@@ -1,4 +1,5 @@
 import filecmp
+import re
 
 import numpy as np
 import pandas as pd
@@ -95,6 +96,14 @@ def test_filters_counted(run, data):
     long_reads = sum(len(seq) == 35 or (cig.startswith("1S") and len(seq) == 36) for _, seq, cig, _ in data["reads"])
     assert s["reads_in_length_window"] == s["reads_cigar_ok"] - long_reads
     assert s["reads_on_cds_transcript"] == s["reads_in_length_window"] - 11  # the reads on "unannotated"
+
+
+def test_ids_not_in_gtf_fail(data, tmp_path):
+    # GTF ids with a version suffix the BAM's reference names do not have: an error, not an all-NA table
+    gtf = tmp_path / "versioned.gtf"
+    gtf.write_text(re.sub(r'transcript_id "([^"]+)"', r'transcript_id "\1.1"', open(data["gtf"]).read()))
+    with pytest.raises(ValueError, match="no BAM reference is a transcript with a CDS in the GTF"):
+        quant.quantify(str(data["bam"]), str(gtf), str(data["fasta"]), WINDOW, str(tmp_path / "s"))
 
 
 def test_footprint_length():

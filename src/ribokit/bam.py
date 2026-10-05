@@ -65,7 +65,10 @@ def read_bam(path, anno, stats):
         ref_tx = np.array([index.get(r, -1) for r in refs], dtype=np.int64)
         ref_len = np.array(bam.lengths, dtype=np.int64)
         known = ref_tx >= 0
-        bad = known & (ref_len != anno.tx_len[np.maximum(ref_tx, 0)])
+        if not known.any():
+            raise ValueError(f"no BAM reference is a transcript with a CDS in the GTF (BAM: {', '.join(refs[:3])}; "
+                             f"GTF: {', '.join(anno.tx[:3])}): do the transcript ids differ, e.g. in a version suffix?")
+        bad = known &(ref_len != anno.tx_len[np.maximum(ref_tx, 0)])
         if bad.any():
             i = np.flatnonzero(bad)[0]
             raise ValueError(f"{bam.references[i]} is {ref_len[i]} nt in the BAM but "
