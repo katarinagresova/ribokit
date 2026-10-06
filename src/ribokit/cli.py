@@ -15,6 +15,13 @@ def read_lengths(spec):
     return lo, hi
 
 
+def codons(spec):
+    out = tuple(c.strip().upper() for c in spec.split(","))
+    if not out or any(len(c) != 3 or set(c) - set("ACGT") for c in out):
+        raise argparse.ArgumentTypeError(f"expected codons such as ATG,CTG, got {spec!r}")
+    return out
+
+
 def add_shared(sp, outputs):
     sp.add_argument("--bam", required=True, help="transcriptome alignments (reference names = transcript ids)")
     sp.add_argument("--gtf", required=True)
@@ -70,6 +77,11 @@ def main(argv=None):
     t.add_argument("--start-lengths", type=read_lengths, metavar="LO-HI",
                    help="read lengths that count (default: the longest run of lengths whose harringtonine P-sites "
                         "peak at nt 0 of the annotated starts in every library)")
+    t.add_argument("--start-codons", type=codons, metavar="CODON,...",
+                   help=f"with --scan: the start codons to test (default {','.join(starts.START_CODONS)}). The "
+                        "annotated starts are tested whatever their codon")
+    t.add_argument("--fdr", type=float, default=starts.FDR,
+                   help="the BH cut: the scan calls the starts with q below it, and starts_stats.tsv counts them")
     a = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
     if a.command == "quant":
@@ -82,7 +94,7 @@ def main(argv=None):
         score.run(a.orfs_prefix, a.out_prefix, frame_lengths=a.frame_lengths)
     else:
         starts.run(a.libraries, a.gtf, a.fasta, a.out_prefix, orfs_path=a.orfs, scan=a.scan,
-                   start_lengths=a.start_lengths)
+                   start_lengths=a.start_lengths, start_codons=a.start_codons, fdr=a.fdr)
 
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ harringtonine libraries (`ribokit starts`).
 ```bash
 mamba env create -p .env -f environment.yml
 .env/bin/pip install --no-deps -e .
-.env/bin/python -m pytest          # 42 tests on synthetic data with known truth
+.env/bin/python -m pytest          # 43 tests on synthetic data with known truth
 ```
 
 ## Use
@@ -98,16 +98,17 @@ ribokit starts --libraries libraries.tsv --gtf annotation.gtf --fasta genome.fa 
 replicate, each an out prefix of an `orfs` run. A pool is a set of
 replicates of one condition. Several pools can be given, and their evidence
 adds up. `--scan` tests every ATG and near-cognate start codon (CTG, GTG,
-TTG, AAG, ACG, AGG, ATA, ATC, ATT) with harringtonine reads; `--orfs
-table.tsv` tests the starts of an ORF table instead (columns `ORF_id Name
-start`). The annotated starts are always tested. How it works and how to read
-it: [docs/starts.md](docs/starts.md).
+TTG, AAG, ACG, AGG, ATA, ATC, ATT) with harringtonine reads, and calls the
+starts with BH q < 0.05; `--start-codons ATG,CTG` tests only these codons and
+`--fdr 0.01` sets the cut. `--orfs table.tsv` tests the starts of an ORF
+table instead (columns `ORF_id Name start`). The annotated starts are always
+tested. How it works and how to read it: [docs/starts.md](docs/starts.md).
 
 | Output | Content |
 |---|---|
 | `<prefix>.starts.tsv` | one row per tested start: `Name start codon region frame ORF_id harringtonine elongation expected enrichment p typical_p q multimapped`. `harringtonine` and `elongation` are the P-sites in the start's window (nt -1 to +2 of the start codon), summed over the replicates and pools; `expected` is the harringtonine P-sites that the elongation profile predicts there; `q` is BH per class (annotated starts; other starts per region: leader, CDS, trailer, transcript without a CDS); `typical_p` is the p the window would have with the reads of a typical used start; `multimapped` is the share of the window's reads with another alignment. With `--scan` also `called stopped_by end type`. |
 | `<prefix>.start_orfs.tsv` | with `--scan`: the ORF of each called start, to its first in-frame stop, but the annotated CDSs: `ORF_id Name start end type start_codon` and the start evidence. `ORF_id` is `<transcript>_<1-based start>`. `type` is `uORF`, `uoORF`, `extension` (in frame upstream of the CDS), `truncation` (in frame inside it), `internal` (out of frame inside it), `dORF` (after it) or `other` (no annotated CDS). An ORF table for `ribokit orfs --orfs`. |
-| `<prefix>.catalogue.tsv` | with `--scan`: the uORFs and uoORFs of the called starts, and every annotated CDS with its start evidence. An ORF table for `ribokit orfs --orfs`. |
+| `<prefix>.catalogue.tsv` | with `--scan`: the uORFs and uoORFs of the called starts, and every annotated CDS with its start evidence; the columns of `start_orfs.tsv`. An ORF table for `ribokit orfs --orfs`. |
 | `<prefix>.kernel.tsv` | per pool, read length and nt from the annotated start (-15 to +32): harringtonine and elongation P-sites, and the kernel (harringtonine minus scaled elongation, as a share). |
 | `<prefix>.factors.tsv` | per pool: the harringtonine / elongation factor of each bin of region and distance. |
 | `<prefix>.starts_stats.tsv` | the start lengths, P-site totals, the prior and overdispersion per region, and per class the tests, the calls and the false calls expected from null windows. |

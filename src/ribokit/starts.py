@@ -28,10 +28,11 @@ Pools add their means and variances. An extra overdispersion phi per region and 
 expected reads makes at most 1% of the null windows reach p <= 0.01. q is BH per class: the annotated
 starts, and the other candidates per region.
 
-Candidates: the starts of an ORF table and the annotated starts, or a scan: each start codon with
-harringtonine reads in its window (BH counts every start codon of the class: the others have p = 1).
+Candidates: the starts of an ORF table and the annotated starts, or a scan: each start codon (of the chosen
+start codons, default START_CODONS) with harringtonine reads in its window (BH counts every such start codon of
+the class: the others have p = 1). Null codons stay clear of all START_CODONS, whichever are chosen.
 The codons 1-10 of an annotated start are not called. Then the scan calls starts in the order of p:
-a start with q < 0.05 is called if no called start stops it, and it stops the candidates within 8 nt
+a start with q < fdr (FDR) is called if no called start stops it, and it stops the candidates within 8 nt
 and in its codons 1-10 (harringtonine raises them). Each called start gives an ORF to its first
 in-frame stop, typed against the annotated CDS. The catalogue is the uORFs and uoORFs of the called
 starts and every annotated CDS.
@@ -57,6 +58,7 @@ NEAR = (-8, 8)       # a null codon has no start codon this near: their windows 
 PROFILE = (-15, 63)  # nt from the annotated start: the kernel to codon 10, then codons 11-20 scale the elongation
 KERNEL_END = 33
 STRIDE = WIN[1] - WIN[0]   # one null codon per window width for the null windows: they do not overlap
+FDR = 0.05           # the BH cut of a call
 MAX_MULTI = 0.5      # null windows: multimapped share of the window's reads below this
 PRIOR_READS = 10     # pseudo-reads: transcript scale at the global scale, bin factor at 1
 PRIOR_NT = 100       # pseudo-nt at the region's mean elongation density, per transcript and region
@@ -392,10 +394,10 @@ def given_starts(path, layout):
                                                           "orf_table_rows_dropped": int((~ok).sum())}
 
 
-def scan_candidates(layout, tx, pools, cs_pos):
-    """Flat positions of the start codons (START_CODONS) with harringtonine reads in their window, and the
+def scan_candidates(layout, tx, pools, cs_pos, codons=START_CODONS):
+    """Flat positions of the start codons (`codons`) with harringtonine reads in their window, and the
     annotated starts."""
-    c = np.flatnonzero(codon_mask(layout) & (tx >= 0))
+    c = np.flatnonzero(codon_mask(layout, codons) & (tx >= 0))
     h = sum(window_sums(pl.h, c) for pl in pools.values())
     return np.union1d(c[h > 0], cs_pos)
 
@@ -448,12 +450,17 @@ def near_starts(pos, p, passing, annotated=()):
     return called, stopped_by
 
 
-def run(sheet_path, gtf, fasta, out_prefix, orfs_path=None, scan=False, start_lengths=None):
+def run(sheet_path, gtf, fasta, out_prefix, orfs_path=None, scan=False, start_lengths=None, start_codons=None,
+        fdr=FDR):
     """Start evidence from the `ribokit orfs` runs of a library sheet (TSV pool, harringtonine, elongation:
     out prefixes, one row per replicate), for the starts of an ORF table and the annotated starts, or for every
-    start codon with harringtonine reads (scan: also the called starts and their ORFs)."""
+    start codon (of `start_codons`, default START_CODONS) with harringtonine reads (scan: also the starts called
+    at q < fdr and their ORFs)."""
     if (orfs_path is None) == (not scan):
         raise ValueError("give an ORF table or scan, not both")
+    if start_codons is not None and not scan:
+        raise ValueError("start codons choose the scan's candidates: give them with a scan")
+    start_codons = START_CODONS if start_codons is None else tuple(start_codons)
     st = {}
     sheet = pd.read_csv(sheet_path, sep="\t", dtype=str)
     prefixes = list(sheet["harringtonine"]) + list(sheet["elongation"])
@@ -534,8 +541,8 @@ def run(sheet_path, gtf, fasta, out_prefix, orfs_path=None, scan=False, start_le
     st.update({f"phi {REGIONS[r]} {DEPTH[b]}": v for (r, b), v in phi.items()})
 
     if scan:
-        pos = scan_candidates(layout, tx, pools, cs_pos)
-        st["candidates"] = len(pos)
+        pos = scan_candidates(layout, tx, pools, cs_pos, start_codons)
+        st.update(start_codons=",".join(start_codons), candidates=len(pos))
     else:
         pos, ids, got = given_starts(orfs_path, layout)
         st.update(got)
@@ -562,7 +569,7 @@ def run(sheet_path, gtf, fasta, out_prefix, orfs_path=None, scan=False, start_le
     # reads, but the others are tests too (p = 1)
     cls = np.where(np.isin(pos, cs_pos), 4, region[pos])
     if scan:
-        every = np.flatnonzero(codon_mask(layout) & (tx >= 0))
+        every = np.flatnonzero(codon_mask(layout, start_codons) & (tx >= 0))
         every = every[~np.isin(every, cs_pos)]
         n_tests = np.r_[np.bincount(region[every], minlength=4), len(cs_pos)]
     else:
@@ -573,16 +580,16 @@ def run(sheet_path, gtf, fasta, out_prefix, orfs_path=None, scan=False, start_le
         if k.any():
             q = bh(p[k], n_tests[c])
             out.loc[k, "q"] = q
-            cut = p[k][q < 0.05].max() if (q < 0.05).any() else 0.0
+            cut = p[k][q < fdr].max() if (q < fdr).any() else 0.0
             nr = region[null_win] == min(c, 1)            # annotated starts: the CDS null windows
             rate = (null_p[nr] <= cut).mean() if nr.any() and cut > 0 else 0.0
             st.update({f"tests {CLASSES[c]}": int(n_tests[c]), f"candidates {CLASSES[c]}": int(k.sum()),
-                       f"q<0.05 {CLASSES[c]}": int((q < 0.05).sum()), f"null_rate_at_cut {CLASSES[c]}": rate,
+                       f"q<{fdr:g} {CLASSES[c]}": int((q < fdr).sum()), f"null_rate_at_cut {CLASSES[c]}": rate,
                        f"expected_false {CLASSES[c]}": rate * n_tests[c]})
     cols = ["Name", "start", "codon", "region", "frame", "ORF_id", "harringtonine", "elongation", "expected",
             "enrichment", "p", "typical_p", "q", "multimapped"]
     if scan:
-        called, stopped_by = near_starts(pos, p, out["q"].to_numpy() < 0.05, np.flatnonzero(cls == 4))
+        called, stopped_by = near_starts(pos, p, out["q"].to_numpy() < fdr, np.flatnonzero(cls == 4))
         stop = next_stops(layout)[pos + 3]
         has_stop = (stop < layout.size) & (tx[np.minimum(stop, layout.size - 1)] == tx[pos])
         end = np.where(has_stop, stop - layout.first[t], -1)

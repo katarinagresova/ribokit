@@ -174,6 +174,26 @@ def test_scan_calls(started):
     assert (so["type"] != "CDS").all() and set(so.columns[:4]) == {"ORF_id", "Name", "start", "end"}
 
 
+def test_scan_start_codons_and_fdr(started, tmp_path):
+    # --start-codons chooses the scan's candidates and BH counts only them; the annotated starts stay. --fdr is the
+    # cut of a call
+    data = started["data"]
+    cli.main(["starts", "--libraries", str(started["sheet"]), "--gtf", str(data["gtf"]), "--fasta", str(data["fasta"]),
+              "--scan", "--start-codons", "atg", "--fdr", "0.01", "--out-prefix", str(tmp_path / "atg")])
+    out = pd.read_csv(tmp_path / "atg.starts.tsv", sep="\t")
+    st = pd.read_csv(tmp_path / "atg.starts_stats.tsv", sep="\t").set_index("stat")["value"]
+    cds = out["type"] == "CDS"
+    assert (out.loc[~cds, "codon"] == "ATG").all() and cds.sum() == (started["scan"]["type"] == "CDS").sum()
+    assert (out.loc[out["called"], "q"] < 0.01).all() and st["start_codons"] == "ATG" and "q<0.01 leader" in st.index
+    assert 0 < int(st["tests leader"]) < started["scan_stats"]["tests leader"]
+    key = {f"{n}_{s + 1}": i for i, (n, s, e, _, _) in data["orf_coords"].items()}
+    called = set(out.loc[out["called"], "ORF_id"].map(key).dropna())
+    assert {"S1_uATG", "S4_pairATG"} <= called and "S1_uCTG" not in called
+    with pytest.raises(ValueError, match="scan"):
+        starts.run(str(started["sheet"]), str(data["gtf"]), str(data["fasta"]), str(tmp_path / "x"),
+                   str(data["orfs"]), start_codons=("ATG",))
+
+
 @pytest.mark.parametrize("table", ["start_orfs", "catalogue"])
 def test_scan_orfs_feed_orfs(started, tmp_path, table):
     # start_orfs.tsv and catalogue.tsv are ORF tables for `ribokit orfs`: every row is kept, and the catalogue's CDS

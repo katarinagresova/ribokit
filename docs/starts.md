@@ -157,12 +157,15 @@ an elongation peak (a pause) from being shrunk, so a pause is not called.
 
 With `--scan`, the candidates are every ATG, CTG, GTG, TTG, AAG, ACG, AGG,
 ATA, ATC and ATT with harringtonine reads in its window, and the annotated
-starts. Starts near each other share reads, so they are called in order:
+starts. `--start-codons` gives other start codons, for example
+`--start-codons ATG,CTG,GTG,TTG`. Then BH counts only these codons, but the
+null codons stay clear of all ten. Starts near each other share reads, so
+they are called in order:
 
 1. The codons 1-10 of an annotated start are not called: harringtonine raises
    them when the start is used, and the test cannot tell them from a start.
 2. The candidates are taken by $p$, smallest first. A candidate with
-   $q < 0.05$ is **called** unless a called start stops it.
+   $q < 0.05$ (`--fdr`) is **called** unless a called start stops it.
 3. A called start stops the candidates within 8 nt of it and in its codons
    1-10. `stopped_by` names the start that stops a candidate.
 
