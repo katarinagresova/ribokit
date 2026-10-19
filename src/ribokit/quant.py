@@ -124,12 +124,38 @@ def tie_groups(unique, classes):
     return [g for g in groups.values() if len(g) > 1]
 
 
+def qc_table(aln, anno, table, lengths):
+    """Reads per read length, P-site region and 5' end phase (qc.tsv), every read of `aln` once: split evenly
+    over its alignments to transcripts with a CDS or, if it has none, over all its alignments.
+      region  where the P-site is: leader, CDS (start codon to last sense codon) or trailer (the stop codon
+              and after); NA without a CDS, at a length outside `lengths` or without an offset
+      phase   (5' end - CDS start) mod 3, as in offsets.tsv, if the 5' end is in the CDS; else NA"""
+    has_cds = np.zeros(aln.n_reads, dtype=bool)
+    has_cds[aln.read[aln.tx >= 0]] = True
+    aln = aln.subset((aln.tx >= 0) | ~has_cds[aln.read])
+    weight = 1 / np.bincount(aln.read)[aln.read]
+    coding = aln.tx >= 0
+    t = np.maximum(aln.tx, 0)   # tx -1 (no CDS) is masked by `coding`
+    start, end = anno.cds_start[t], anno.cds_end[t]
+    in_cds = coding & (aln.pos5 >= start) & (aln.pos5 < end)
+    phase = pd.array(np.where(in_cds, (aln.pos5 - start) % 3, 0), dtype="Int64")
+    phase[~in_cds] = pd.NA
+    window = np.flatnonzero(coding & (aln.length >= lengths[0]) & (aln.length <= lengths[1]))
+    has_off, psite_in_cds, psite = assign(aln.subset(window), anno, table, lengths)
+    region = pd.array([pd.NA] * weight.size, dtype="string")
+    region[window[has_off]] = np.select([psite < start[window], psite_in_cds], ["leader", "CDS"],
+                                        "trailer")[has_off]
+    return (pd.DataFrame({"length": aln.length, "region": region, "phase": phase, "reads": weight})
+            .groupby(["length", "region", "phase"], dropna=False)["reads"].sum().reset_index())
+
+
 def quantify(bam_path, gtf, fasta, lengths, out_prefix, offsets_path=None, min_support=30,
              tol=1e-3, max_iter=100_000):
     stats = {}
     anno = annotation.load_annotation(gtf, fasta)
     stats.update({f"annotation_{k}": v for k, v in anno.stats.items()})
     aln = bam.read_bam(bam_path, anno, stats)
+    bam_aln = aln
 
     lo, hi = lengths
     aln = aln.subset((aln.length >= lo) & (aln.length <= hi))
@@ -180,6 +206,7 @@ def quantify(bam_path, gtf, fasta, lengths, out_prefix, offsets_path=None, min_s
         "psite": psite,
         "length": aln.length,
     }).to_csv(f"{out_prefix}.psites.tsv", sep="\t", index=False)
+    qc_table(bam_aln, anno, table, lengths).to_csv(f"{out_prefix}.qc.tsv", sep="\t", index=False, na_rep="NA")
     pd.DataFrame(list(stats.items()), columns=["stat", "value"]).to_csv(
         f"{out_prefix}.stats.tsv", sep="\t", index=False)
     return quant, offsets_df, stats

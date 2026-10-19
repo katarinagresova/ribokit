@@ -43,7 +43,7 @@ def main(argv=None):
     p.add_argument("--version", action="version", version=__version__)
     sub = p.add_subparsers(dest="command", required=True)
     q = sub.add_parser("quant", help="P-site offsets and CDS quantification from a transcriptome BAM")
-    add_shared(q, "quant.tsv, .offsets.tsv, .ties.tsv, .stats.tsv, .psites.tsv")
+    add_shared(q, "quant.tsv, .offsets.tsv, .ties.tsv, .stats.tsv, .psites.tsv, .qc.tsv")
     o = sub.add_parser("orfs", help="reads per ORF in its reading frame (one P-site offset per read length), "
                                     "and outside the ORFs per transcript")
     add_shared(o, "orfs.tsv, .frames.tsv, .codons.tsv, .offsets.tsv, .ties.tsv, .stats.tsv, "

@@ -11,7 +11,7 @@ harringtonine libraries (`ribokit starts`).
 ```bash
 mamba env create -p .env -f environment.yml
 .env/bin/pip install --no-deps -e .
-.env/bin/python -m pytest          # 43 tests on synthetic data with known truth
+.env/bin/python -m pytest          # 45 tests on synthetic data with known truth
 ```
 
 ## Use
@@ -38,6 +38,7 @@ Inputs:
 | `<prefix>.ties.tsv` | `Name tie_group`: CDSs that no read tells apart (e.g. identical paralogs). Their split comes from the model, not from the data: equally long CDSs keep the EM's even start, otherwise the shortest gets almost all the reads. |
 | `<prefix>.stats.tsv` | reads left after each filter, EM steps and log-likelihood |
 | `<prefix>.psites.tsv` | `read Name psite length`, one row per alignment assigned to a CDS: `psite` is the 0-based transcript position of the P-site's first nt |
+| `<prefix>.qc.tsv` | `length region phase reads`, for QC plots: every read once, at its footprint length, split evenly over its alignments to transcripts with a CDS (over all its alignments if it has none). `region` = where the P-site is: `leader`, `CDS` or `trailer` (the stop codon and after); `NA` without a CDS, outside `--read-lengths` or without an offset. `phase` = (5' end − CDS start) mod 3, as in `offsets.tsv`, if the 5' end is in the CDS; else `NA`. At every read length. |
 
 ### ORFs other than the CDS: `orfs` and `score`
 

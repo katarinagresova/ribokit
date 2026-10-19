@@ -29,7 +29,7 @@ flowchart TB
     given[/"or: offsets from another run"/] -.-> assign
     assign --> ec["5 · Equivalence classes: reads grouped by compatible CDSs"]
     ec --> em["6 · EM: expected reads per CDS"]
-    em --> out[/"quant.tsv · offsets.tsv · ties.tsv · stats.tsv · psites.tsv"/]
+    em --> out[/"quant.tsv · offsets.tsv · ties.tsv · stats.tsv · psites.tsv · qc.tsv"/]
 ```
 
 | Problem | What ribokit does |
@@ -338,6 +338,7 @@ Each file is written as `<prefix>.<name>`, with the prefix from `--out-prefix`:
 | `ties.tsv` | CDSs that no read tells apart. |
 | `stats.tsv` | Reads left after each filter, EM steps and log-likelihood. |
 | `psites.tsv` | `read Name psite length`, one row per alignment whose P-site is in a CDS ([step 4](#4-assignment)): `psite` is the 0-based transcript position of the P-site's first nt, always the first nt of a codon of the CDS, and `length` is the footprint length. A read with several such alignments has a row for each. |
+| `qc.tsv` | `length region phase reads`, for QC plots of read length, P-site region and frame. Every read with an acceptable alignment counts once (the rows sum to `reads_cigar_ok`), at its footprint length, at every length; it is split evenly over its alignments to transcripts with a CDS, or over all its alignments if it has none. `region` is where the P-site is: `leader`, `CDS` ([step 4](#4-assignment): start codon to last sense codon) or `trailer` (the stop codon and after); `NA` without a CDS, outside `--read-lengths` or without an offset. `phase` is the 5′ end's (5′ end − CDS start) mod 3, as in `offsets.tsv`, if the 5′ end is in the CDS; else `NA`. |
 
 `NumReads` sums to `reads_assigned`. `ritpm` is the density, scaled to sum to
 one million:
@@ -395,7 +396,7 @@ classes; SQUAREM converges in 10 EM steps.
 - The EM starts from an even split; ties between offset windows go to the
   smaller centre.
 - Transcripts and outputs are sorted by name, except `psites.tsv`, which keeps
-  the BAM's order.
+  the BAM's order, and `qc.tsv`, sorted by length, region and phase.
 - An EM that does not converge raises an error.
 
 A rerun on the same input gives byte-identical output files; the tests check

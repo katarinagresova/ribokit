@@ -1,5 +1,6 @@
 import filecmp
 import re
+from collections import Counter
 
 import numpy as np
 import pandas as pd
@@ -9,7 +10,7 @@ import scipy.sparse as sp
 from ribokit import annotation, quant
 from ribokit.bam import _footprint_length
 
-from synth import TRUE_OFFSETS, make_dataset
+from synth import PLANTED, TRUE_OFFSETS, make_dataset
 
 WINDOW = (28, 30)
 
@@ -98,6 +99,32 @@ def test_filters_counted(run, data):
     assert s["reads_on_cds_transcript"] == s["reads_in_length_window"] - 11  # the reads on "unannotated"
 
 
+
+def read_qc(run):
+    return pd.read_csv(f"{run['prefix']}.qc.tsv", sep="\t", dtype={"region": "string", "phase": "Int64"})
+
+
+def test_qc_counts_every_read_once(run, data):
+    qc, s = read_qc(run), run["stats"]
+    assert qc["reads"].sum() == pytest.approx(s["reads_cigar_ok"])
+    footprints = Counter(len(seq) - cig.startswith("1S") for _, seq, cig, _ in data["reads"] if "D" not in cig)
+    assert qc.groupby("length")["reads"].sum().to_dict() == pytest.approx(dict(footprints))
+    in_window = qc["length"].between(*WINDOW)
+    assert qc.loc[~in_window, "region"].isna().all()                  # no offsets for the 35 nt reads
+    assert qc.loc[qc["region"].notna(), "reads"].sum() == pytest.approx(s["reads_with_offset"])
+    assert qc.loc[qc["region"] == "CDS", "reads"].sum() == pytest.approx(s["reads_assigned"])
+
+
+def test_qc_phase_follows_offsets(run):
+    # the 5' end of a read with offset d has phase -d mod 3 in the CDS; the 35 nt reads have offset 12
+    qc = read_qc(run).dropna(subset=["phase"])
+    reads = qc.pivot_table(index="length", columns="phase", values="reads", aggfunc="sum", fill_value=0)
+    share = reads.div(reads.sum(axis=1), axis=0)
+    for length, ds in PLANTED.items():
+        for d, p in ds:
+            assert share.at[length, -d % 3] == pytest.approx(p, abs=0.03), (length, d)
+    assert share.at[35, 0] == 1
+
 def test_ids_not_in_gtf_fail(data, tmp_path):
     # GTF ids with a version suffix the BAM's reference names do not have: an error, not an all-NA table
     gtf = tmp_path / "versioned.gtf"
@@ -119,6 +146,6 @@ def test_deterministic_and_offsets_reusable(run, data, tmp_path):
     reused = tmp_path / "reused"
     quant.quantify(str(data["bam"]), str(data["gtf"]), str(data["fasta"]), WINDOW, str(reused),
                    offsets_path=f"{run['prefix']}.offsets.tsv")
-    for suffix in ("quant.tsv", "offsets.tsv", "ties.tsv", "stats.tsv", "psites.tsv"):
+    for suffix in ("quant.tsv", "offsets.tsv", "ties.tsv", "stats.tsv", "psites.tsv", "qc.tsv"):
         assert filecmp.cmp(f"{run['prefix']}.{suffix}", f"{again}.{suffix}", shallow=False), suffix
     assert filecmp.cmp(f"{run['prefix']}.quant.tsv", f"{reused}.quant.tsv", shallow=False)
